@@ -9,6 +9,7 @@ from gi.repository import Gst, GstNet
 
 
 def on_message(bus, message):
+    print(str(message))
     t = message.type
     if t == Gst.MessageType.EOS:
         #self.player.set_state(Gst.State.NULL)
@@ -26,27 +27,23 @@ def main(args):
 
     Gst.init(args)
 
-    # make the pipeline
-    pipeline = Gst.parse_launch('playbin')   
+    #print(dir(Gst))
 
-    # make sure some other clock isn't autoselected
-    #system_clock = pipeline.get_pipeline_clock()
-    system_clock = pipeline.get_pipeline_clock()
-    
-    #print('Using clock: ', clock)
-    #pipeline.use_clock(clock)
-
-    # this will start a server listening on a UDP port
-    clock_provider = GstNet.NetTimeProvider(clock=system_clock, address=None, port=port)
+    system_clock = Gst.SystemClock.obtain()
+    prov_clock = GstNet.NetTimeProvider(clock=system_clock, address=None, port=port)
+    #print("dd", prov_clock.get_property('address'))
 
     #base_time = system_clock.get_time()
 
-    client_clock = GstNet.NetClientClock.new('clock', "127.0.0.1", port, 0)
-    time.sleep(0.5) # Wait 0.5 seconds for the clock to stabilise
-    base_time = clock_provider.get_property('clock').get_time()
+    client_clock = GstNet.NetClientClock.new('client_clock', "127.0.0.1", port, 0)
 
+    # Wait 0.5 seconds for the clock to stabilise
+    time.sleep(0.5) 
+    base_time = prov_clock.get_property('clock').get_time()
+    print("base_time %s\n", base_time)
  
-    
+    # make the pipeline
+    pipeline = Gst.parse_launch('playbin')   
     pipeline.set_property('uri', uri) # uri interface
 
     # use it in the pipeline
@@ -61,17 +58,19 @@ def main(args):
     print ('Start slave as: python ./play-slave.py %s [IP] %d %d'
            % (uri, port, base_time))
 
-    # pipeline.set_property('volume', 0.0)
-
-    # now we go :)
-    pipeline.set_state(Gst.State.PLAYING)
+    pipeline.set_property('volume', 8)
 
     # wait until things stop
     bus =  pipeline.get_bus()
     bus.add_signal_watch()
     bus.connect("message", on_message) 
 
+    # now we go :)
+    pipeline.set_state(Gst.State.PLAYING)
+
     bus.poll(Gst.MessageType.EOS | Gst.MessageType.ERROR, Gst.CLOCK_TIME_NONE)
+
+    print("here")
     pipeline.set_state(Gst.State.NULL)
 
 
