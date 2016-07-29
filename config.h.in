@@ -1,0 +1,11 @@
+#ifndef _GSTE_CONFIG_H_
+#define _GSTE_CONFIG_H_
+
+
+#define PACKAGE "@PACKAGE@"
+#define VERSION "0.0.1"
+
+#define GST_EDITOR_UNINSTALLED_DATA_DIR "@UNINSTALLED_DATA_DIR@"
+#define GST_EDITOR_DATA_DIR "@DATA_DIR@"
+
+#endif //_GSTE_CONFIG_H_

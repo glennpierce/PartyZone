@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 
   /* Create the elements */
   playbin = gst_element_factory_make ("playbin", "playbin");
-  g_object_set (playbin, "uri", "file:///home/glenn/devel/MusicSync/test.mp3", NULL);
+  g_object_set (playbin, "uri", "file:///home/glenn/devel/PartyZone/test.mp3", NULL);
 
   gst_pipeline_use_clock (GST_PIPELINE (playbin), client_clock);
   gst_element_set_base_time (playbin, base_time);
