@@ -9,6 +9,7 @@ from gi.repository import Gst, GstNet
 
 
 def on_message(bus, message):
+    print(message)
     t = message.type
     if t == Gst.MessageType.EOS:
         #self.player.set_state(Gst.State.NULL)
