@@ -18,6 +18,9 @@ endif(NOT CMAKE_BUILD_TYPE)
 ## cmake module path (make sure to pull the cmake subrepository)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 
+find_package(LibEvent REQUIRED)
+
+find_package(Gio REQUIRED)
 
 find_package(Glibmm 2.4 REQUIRED)
 add_definitions(${GLIBMM_DEFINITIONS})
@@ -37,9 +40,11 @@ find_package(Thrift REQUIRED)
 
 ## from library dependencies
 include_directories(${GSTREAMER_INCLUDE_DIRS}
-	            ${GTKMM_INCLUDE_DIRS}
+	                ${GTKMM_INCLUDE_DIRS}
                     ${GLIBMM_INCLUDE_DIRS}
                     ${THRIFT_INCLUDE_DIR}
+                    ${LIBEVENT_INCLUDE_DIR}
+                    ${GIO_INCLUDE_DIR}
 )
 
 link_directories( ${GSTREAMER_LIBRARY_DIRS}
@@ -53,6 +58,7 @@ link_directories( ${GSTREAMER_LIBRARY_DIRS}
 include_directories(
     "${PROJECT_SOURCE_DIR}/libs"   
     "${PROJECT_SOURCE_DIR}/include"   
+    "${PROJECT_SOURCE_DIR}/gen-cpp" 
     "${PROJECT_SOURCE_DIR}/src"       
 )
 
@@ -73,9 +79,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config.h.in  ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h)
 add_definitions("-D HAVE_CONFIG_H")
 
-set(PLAYER_THRIFT_SRCS gen-cpp/player_types.cpp gen-cpp/Player.cpp gen-cpp/player_constants.cpp)
+set(PLAYER_THRIFT_SRCS gen-cpp/player_types.cpp gen-cpp/Player.cpp gen-cpp/player_constants.cpp src/TGlibServerFramework.cc src/TGlibServer.cc src/TNonblockingServer.cpp)
 
-set(PLAYER_THRIFT_HEADERS gen-cpp/player_types.h gen-cpp/Player.h gen-cpp/player_constants.h)
+set(PLAYER_THRIFT_HEADERS gen-cpp/player_types.h gen-cpp/Player.h gen-cpp/player_constants.h src/TGlibServerFramework.h src/TGlibServer.h src/TNonblockingServer.h)
 
 add_custom_command(OUTPUT ${PLAYER_THRIFT_SRCS} ${PLAYER_THRIFT_HEADERS}
     COMMAND ${THRIFT_COMPILER} --gen cpp ${PROJECT_SOURCE_DIR}/src/player.thrift
@@ -83,10 +89,22 @@ add_custom_command(OUTPUT ${PLAYER_THRIFT_SRCS} ${PLAYER_THRIFT_HEADERS}
 
 add_executable(master_player src/master_player.cc ${PLAYER_THRIFT_SRCS})
 
+add_executable(slave_player src/slave_player.cc ${PLAYER_THRIFT_SRCS})
+
 message(STATUS ${GSTREAMER_LIBRARIES})
 
 target_link_libraries(master_player ${GSTREAMER_LIBRARIES}
                                     ${GTKMM_LIBRARIES}
                                     ${GLIBMM_LIBRARIES}
                                     ${THRIFT_LIBRARIES}
+                                    ${LIBEVENT_LIB}
+                                    ${GIO_LIBRARIES}
+)
+
+target_link_libraries(slave_player ${GSTREAMER_LIBRARIES}
+                                    ${GTKMM_LIBRARIES}
+                                    ${GLIBMM_LIBRARIES}
+                                    ${THRIFT_LIBRARIES}
+                                    ${LIBEVENT_LIB}
+                                    ${GIO_LIBRARIES}
 )
