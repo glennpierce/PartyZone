@@ -27,8 +27,8 @@ def main(args):
 
     Gst.init(args)
 
-    pipeline = Gst.parse_launch('playbin')
-    pipeline.set_property('uri', uri) # uri interface
+    #pipeline = Gst.parse_launch('playbin')
+    #pipeline.set_property('uri', uri) # uri interface
 
     # disable the pipeline's management of base_time -- we're going
     # to set it ourselves.
@@ -39,27 +39,35 @@ def main(args):
 
     # make a clock slaving to the network
     #clock = GstNet.NetClientClock,new(None, ip, port, base_time)
-    clock = GstNet.NetClientClock.new("clock", ip, port, base_time)
+
+    print ("ip", ip)
+    print ("port", port)
+    print ("base_time", base_time)
+    clock = GstNet.NetClientClock.new("clock", ip, port, 0)
 
     time.sleep(0.5) # Wait 0.5 seconds for the clock to stabilise
 
+    playbin = Gst.ElementFactory.make('playbin', 'playbin')
+    #pipeline = playbin.pipeline()
+    playbin.set_property('uri', uri) # uri interface
+
     # use it in the pipeline
-    pipeline.set_base_time(base_time)
-    pipeline.use_clock(clock)
-    pipeline.set_start_time(Gst.CLOCK_TIME_NONE)
-    pipeline.set_base_time(base_time)
-    pipeline.set_latency (0.5);
+    #pipeline.set_base_time(base_time)
+    playbin.use_clock(clock)
+    playbin.set_base_time(base_time)
+    playbin.set_start_time(Gst.CLOCK_TIME_NONE) 
+    playbin.set_latency (0.5);
 
     # now we go :)
-    pipeline.set_state(Gst.State.PLAYING)
+    playbin.set_state(Gst.State.PLAYING)
 
-    bus =  pipeline.get_bus()
+    bus =  playbin.get_bus()
     bus.add_signal_watch()
     bus.connect("message", on_message)
  
     # wait until things stop
     bus.poll(Gst.MessageType.EOS | Gst.MessageType.ERROR, Gst.CLOCK_TIME_NONE)
-    pipeline.set_state(Gst.State.NULL)
+    playbin.set_state(Gst.State.NULL)
 
 
 if __name__ == '__main__':
