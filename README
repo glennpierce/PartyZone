@@ -1,0 +1,7 @@
+
+Needs Thrift 0.93
+./configure --prefix=/usr/local --enable-tests=no
+
+sudo python3 -m pip install Pyro4
+
+python -m Pyro4.naming
