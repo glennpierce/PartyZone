@@ -3,11 +3,10 @@
 # This is the code that visits the warehouse.
 import sys
 import Pyro4
+import Pyro4.util
 from play_master import MasterPlayer
 
-if sys.version_info<(3,0):
-    input = raw_input
+sys.excepthook = Pyro4.util.excepthook
 
-uri = input("Enter the uri of the warehouse: ").strip()
-player = Pyro4.Proxy(uri)
+player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
 player.play()

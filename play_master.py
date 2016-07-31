@@ -95,18 +95,16 @@ if __name__ == '__main__':
         # #player = MasterPlayer()
         # #player.initialise(sys.argv)
 
-        nasdaq = StockMarket("NASDAQ", ["AAPL", "CSCO", "MSFT", "GOOG"])
-        newyork = StockMarket("NYSE", ["IBM", "HPQ", "BP"])
+        player = MasterPlayer()
+        
+       # newyork = StockMarket("NYSE", ["IBM", "HPQ", "BP"])
 
         with Pyro4.Daemon() as daemon:
-            nasdaq_uri = daemon.register(nasdaq)
-            newyork_uri = daemon.register(newyork)
+            player_uri = daemon.register(player)
             with Pyro4.locateNS() as ns:
-                ns.register("example.stockmarket.nasdaq", nasdaq_uri)
-                ns.register("example.stockmarket.newyork", newyork_uri)
-            nasdaq.run()
-            newyork.run()
-            print("Stockmarkets running.")
+                ns.register("partyzone.masterplayer", player_uri)
+            player.initialise(sys.argv)
+            print("player running.", player_uri)
             daemon.requestLoop()
 
     except KeyboardInterrupt:
