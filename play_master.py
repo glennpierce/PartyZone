@@ -91,20 +91,9 @@ class MasterPlayer(object):
         print("play")
         self.playbin.set_state(Gst.State.PLAYING)
 
-        print("ffff")
-        
-
     def stop(self):
         print("stop")
         self.playbin.set_state(Gst.State.NULL)
-
-        # def generate_symbols():
-        #     while True:
-        #         time.sleep(random.random())
-        #         self.generate()
-        # thread = threading.Thread(target=generate_symbols)
-        # thread.setDaemon(True)
-        # thread.start()
 
     def on_message(self, bus, message):
         t = message.type
