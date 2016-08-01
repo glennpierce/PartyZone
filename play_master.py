@@ -4,6 +4,7 @@ import sys
 import gi
 import time
 import signal
+import select
 import Pyro4
 gi.require_version('Gst', '1.0')
 gi.require_version('GstNet', '1.0')
@@ -66,12 +67,32 @@ class MasterPlayer(object):
         
         #playbin.set_state(Gst.State.NULL)
 
+    def install_pyro_event_callback(self, daemon):
+        """
+        Add a callback to the tkinter event loop that is invoked every so often.
+        The callback checks the Pyro sockets for activity and dispatches to the
+        daemon's event process method if needed.
+        """
+
+        def pyro_event():
+            while True:
+                # for as long as the pyro socket triggers, dispatch events
+                s, _, _ = select.select(daemon.sockets, [], [], 0.01)
+                if s:
+                    daemon.events(s)
+                else:
+                    # no more events, stop the loop, we'll get called again soon anyway
+                    break
+            GObject.timeout_add(20, pyro_event)
+
+        GObject.timeout_add(20, pyro_event)
+
     def play(self):
         print("play")
         self.playbin.set_state(Gst.State.PLAYING)
 
         print("ffff")
-        GObject.MainLoop().run()
+        
 
     def stop(self):
         print("stop")
@@ -117,11 +138,15 @@ if __name__ == '__main__':
                 ns.register("partyzone.masterplayer", player_uri)
             player.initialise(sys.argv)
             print("player running.", player_uri)
-            daemon.requestLoop()
+            #daemon.requestLoop()
+
+            # add a Pyro event callback to the gui's mainloop
+            player.install_pyro_event_callback(daemon)
+            GObject.MainLoop().run()
 
     except KeyboardInterrupt:
         print("Bye")
         sys.exit()
     
 
-    http://pyro-core.narkive.com/JK9ZTbrZ/having-trouble-handling-events
+    
