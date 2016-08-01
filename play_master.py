@@ -47,6 +47,11 @@ class MasterPlayer(object):
         print ('Start slave as: python ./play-slave.py %s 127.0.0.1 %d %d'
             % (uri, port, base_time))
 
+        # wait until things stop
+        bus =  self.playbin.get_bus()
+        bus.add_signal_watch()
+        bus.connect("message", self.on_message) 
+
         # playbin.set_state(Gst.State.PLAYING)
 
         # # wait until things stop
@@ -65,13 +70,20 @@ class MasterPlayer(object):
         print("play")
         self.playbin.set_state(Gst.State.PLAYING)
 
-        # wait until things stop
-        bus =  self.playbin.get_bus()
-        bus.add_signal_watch()
-        bus.connect("message", self.on_message) 
-
         print("ffff")
         GObject.MainLoop().run()
+
+    def stop(self):
+        print("stop")
+        self.playbin.set_state(Gst.State.NULL)
+
+        # def generate_symbols():
+        #     while True:
+        #         time.sleep(random.random())
+        #         self.generate()
+        # thread = threading.Thread(target=generate_symbols)
+        # thread.setDaemon(True)
+        # thread.start()
 
     def on_message(self, bus, message):
         t = message.type
@@ -111,3 +123,5 @@ if __name__ == '__main__':
         print("Bye")
         sys.exit()
     
+
+    http://pyro-core.narkive.com/JK9ZTbrZ/having-trouble-handling-events
