@@ -44,7 +44,7 @@ class Player(object):
 class MasterPlayer(Player):
 
     def __init__(self):
-        pass
+        self.clients = []
 
     def initialise(self, uri, port):
         port = int(port)
@@ -110,6 +110,9 @@ class MasterPlayer(Player):
     def stop(self):
         print("stop")
         self.playbin.set_state(Gst.State.NULL)
+
+    def register(self):
+        self.clients.append(Pyro4.current_context.client.sock.getpeername()[0])
 
 
 @Pyro4.expose
