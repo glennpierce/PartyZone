@@ -18,10 +18,17 @@ from gi.repository import GObject, Gst, GstNet
 class Player(object):
 
     def __init__(self):
-        pass
+        self._track_uri = None
 
-    def set_track(self, track_path):
-        raise NotImplementedError()
+    def set_track(self, track_uri):
+        self._track_uri = track_uri
+
+    @property
+    def track(self):
+        if not self._track_uri:
+            raise Exception("No track set")
+
+        return self._track_uri
 
     def play(self):
         raise NotImplementedError()
@@ -46,7 +53,7 @@ class MasterPlayer(Player):
     def __init__(self):
         self.clients = []
 
-    def initialise(self, uri, port):
+    def initialise(self, port):
         port = int(port)
 
         system_clock = Gst.SystemClock.obtain()
@@ -59,8 +66,7 @@ class MasterPlayer(Player):
         print("base_time %s", self.base_time) 
     
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
-        print(uri)
-        self.playbin.set_property('uri', uri) # uri interface
+        self.playbin.set_property('uri', self.track)
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
@@ -187,15 +193,20 @@ if __name__ == '__main__':
                 player_uri = daemon.register(player)
                 with Pyro4.locateNS() as ns:
                     ns.register("partyzone.masterplayer", player_uri)
-                player.initialise(args.filepath, args.clock_port)
-                print("player running.", player_uri)
+                player.initialise(args.clock_port)
+                #print("player running.", player_uri)
 
                 # add a Pyro event callback to the gui's mainloop
                 player.install_pyro_event_callback(daemon)
                 GObject.MainLoop().run()
-        else:
+        elif args.playertype == "slave":
             master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
             player = SlavePlayer(master_player)
+        else:  # Controller
+            master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
+            # Set the file uri to play
+            master_player.set_track(args.filepath)
+            pass
 
     except KeyboardInterrupt:
         print("Bye")
