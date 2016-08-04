@@ -18,10 +18,14 @@ from gi.repository import GObject, Gst, GstNet
 class Player(object):
 
     def __init__(self):
+        self._name = None
         self._track_uri = None
 
     def set_track(self, track_uri):
         self._track_uri = track_uri
+
+    def set_name(self, name):
+        self._name = name
 
     @property
     def track(self):
@@ -29,6 +33,13 @@ class Player(object):
             raise Exception("No track set")
 
         return self._track_uri
+
+    @property
+    def name(self):
+        if not self._name:
+            raise Exception("No speaker name set")
+
+        return self._name
 
     def play(self):
         raise NotImplementedError()
@@ -45,13 +56,6 @@ class Player(object):
             #self.player.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
             print("Error: %s" % err, debug)
-
-
-@Pyro4.expose
-class MasterPlayer(Player):
-
-    def __init__(self):
-        self.clients = []
 
     def initialise(self, port):
         port = int(port)
@@ -80,7 +84,6 @@ class MasterPlayer(Player):
         bus =  self.playbin.get_bus()
         bus.add_signal_watch()
         bus.connect("message", self.on_message) 
-
 
     def install_pyro_event_callback(self, daemon):
         """
@@ -117,70 +120,32 @@ class MasterPlayer(Player):
         print("stop")
         self.playbin.set_state(Gst.State.NULL)
 
-    def register(self):
-        self.clients.append(Pyro4.current_context.client.sock.getpeername()[0])
-
 
 @Pyro4.expose
-class SlavePlayer(Player):
+class MasterPlayer(Player):
 
-    def __init__(self, master_player):
-        self.master_player = master_player
+    def __init__(self):
+        self.clients = []
 
-    def initialise(self, uri, port):
-        port = int(port)
+    # def register(self):
+    #     self.clients.append(Pyro4.current_context.client.sock.getpeername()[0])
 
-        print ("ip", ip)
-        print ("port", port)
-        print ("base_time", base_time)
-        clock = GstNet.NetClientClock.new("clock", ip, port, 0)
-
-        time.sleep(1.5) # Wait 0.5 seconds for the clock to stabilise
-
-        playbin = Gst.ElementFactory.make('playbin', 'playbin')
-        #pipeline = playbin.pipeline()
-        playbin.set_property('uri', uri) # uri interface
-
-        # use it in the pipeline
-        #pipeline.set_base_time(base_time)
-        playbin.use_clock(clock)
-        playbin.set_base_time(base_time)
-        playbin.set_start_time(Gst.CLOCK_TIME_NONE) 
-        playbin.set_latency (0.5);
-
-        # now we go :)
-        playbin.set_state(Gst.State.PLAYING)
-
-        bus =  playbin.get_bus()
-        bus.add_signal_watch()
-        bus.connect("message", self.on_message)
-    
-        # wait until things stop
-        #bus.poll(Gst.MessageType.EOS | Gst.MessageType.ERROR, Gst.CLOCK_TIME_NONE)
-
-    def play(self):
-        print("play")
-        self.playbin.set_state(Gst.State.PLAYING)
-
-    def stop(self):
-        print("stop")
-        self.playbin.set_state(Gst.State.NULL)
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Syncronise music accross machines.')
 
-    parser.add_argument('--playertype', type=str, dest='playertype', default='slave',
+    parser.add_argument('--playertype', type=str, dest='playertype', default='controller',
         help='player type. master or slave (default slave)')
     
     parser.add_argument('--port', type=int, dest='clock_port', default='5342',
         help='port used for the network clock')
 
-    parser.add_argument('filepath')
+    parser.add_argument('name')
 
     args = parser.parse_args()
-    args.filepath = os.path.abspath(args.filepath)
+    #args.filepath = os.path.abspath(args.name)
 
     Gst.init(sys.argv)
 
@@ -188,7 +153,8 @@ if __name__ == '__main__':
 
         if args.playertype == "master":
             player = MasterPlayer()
-            
+            player.set_name(args.name)
+
             with Pyro4.Daemon() as daemon:
                 player_uri = daemon.register(player)
                 with Pyro4.locateNS() as ns:
@@ -200,16 +166,18 @@ if __name__ == '__main__':
                 player.install_pyro_event_callback(daemon)
                 GObject.MainLoop().run()
         elif args.playertype == "slave":
-            master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
             player = SlavePlayer(master_player)
+            player.set_name(args.name)
         else:  # Controller
-            master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
-            # Set the file uri to play
-            master_player.set_track(args.filepath)
+            with Pyro4.locateNS() as ns:
+                players = ns.list(prefix="partyzone")
+                print(players)
+                #master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
+                # Set the file uri to play
+                #master_player.set_track(args.filepath)
             pass
 
     except KeyboardInterrupt:
-        print("Bye")
         sys.exit()
     
 
