@@ -48,7 +48,7 @@ class Player(object):
         self._track_uri = value
 
     def get_master_ip_address(self):
-        return this.master_ip_address
+        return self.master_ip_address
 
     #def get_ip_address(self):
     #    print(Pyro4.current_context.client.sock.getpeername())
