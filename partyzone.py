@@ -47,9 +47,12 @@ class Player(object):
     def track(self, value):
         self._track_uri = value
 
-    def get_ip_address(self):
-        print(Pyro4.current_context.client.sock.getpeername())
-        return Pyro4.current_context.client.sock.getpeername()[0]
+    def get_master_ip_address(self):
+        return this.master_ip_address
+
+    #def get_ip_address(self):
+    #    print(Pyro4.current_context.client.sock.getpeername())
+    #    return Pyro4.current_context.client.sock.getpeername()[0]
 
     def on_message(self, bus, message):
         #print(str(message))
@@ -186,8 +189,8 @@ if __name__ == '__main__':
                     #print(master_uri)
                     master = Pyro4.Proxy(master_uri)
                     print ("master ip :")
-                    print(master.get_ip_address())
-                    player = Player(args.clock_port, master_ip_address=master.get_ip_address(), is_master=False)
+                    print(master.get_master_ip_address())
+                    player = Player(args.clock_port, master_ip_address=master.get_master_ip_address(), is_master=False)
                     slave_uri = daemon.register(player)
 
                     register_name = "partyzone.slave (%s)" % gethostname()
