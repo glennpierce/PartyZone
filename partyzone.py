@@ -29,7 +29,7 @@ class Player(object):
         if self.is_master:
             print("init master port %s" % self.port)
             self.system_clock = Gst.SystemClock.obtain()
-            self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, None, self.port)
+            self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, ip_address, self.port)
             #self.base_time = clock_provider.get_property('clock').get_time()
             print("setting clock provider")
         #else:
@@ -160,8 +160,8 @@ if __name__ == '__main__':
 
             if not args.host:   
                 raise AttributeError("host parameter required")
-                
-            player = Player(args.clock_port, is_master=True)
+
+            player = Player(args.clock_port, is_master=True, ip_address=args.host)
             #player.set_name(args.name)
 
             with Pyro4.Daemon(args.host) as daemon:
@@ -196,9 +196,6 @@ if __name__ == '__main__':
         
         else:  # Controller
 
-            #if not args.uri:        self.master_basetime = master_basetime
-            #    raise AttributeError("uri parameter required")
-
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
                 master = None
@@ -214,10 +211,10 @@ if __name__ == '__main__':
                 master.track = "file:///home/glenn/devel/PartyZone/test.mp3"
                 master.play()
 
-                slaves[0].track = "file:///home/glenn/devel/PartyZone/test.mp3"
-                slaves[0].play(master_basetime=master.get_basetime())
-                time.sleep(10)
-                slaves[0].stop()
+                #slaves[0].track = "file:///home/glenn/devel/PartyZone/test.mp3"
+                #slaves[0].play(master_basetime=master.get_basetime())
+                #time.sleep(10)
+                #slaves[0].stop()
 
                 #master.track = args.uri
                 #master.play()
