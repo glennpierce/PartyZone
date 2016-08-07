@@ -157,6 +157,10 @@ if __name__ == '__main__':
     try:
 
         if args.playertype == "master":
+
+            if not args.host:   
+                raise AttributeError("host parameter required")
+                
             player = Player(args.clock_port, is_master=True)
             #player.set_name(args.name)
 
@@ -173,6 +177,9 @@ if __name__ == '__main__':
                 GObject.MainLoop().run()
         elif args.playertype == "slave":
             
+            if not args.host:   
+                raise AttributeError("host parameter required")
+
             with Pyro4.Daemon(args.host) as daemon:
                 with Pyro4.locateNS() as ns:
                     master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
