@@ -18,19 +18,24 @@ from socket import gethostname
 @Pyro4.expose
 class Player(object):
 
-    def __init__(self, port, is_master=False, ip_address="127.0.0.1", master_basetime=None):
+    def __init__(self, port, is_master=False, ip_address="127.0.0.1"):
         self.name = gethostname()
         self.port = int(port)
         self.is_master = is_master
         self._track_uri = None
         self.ip_address = ip_address
+        #self.master_basetime = master_basetime
         
         if self.is_master:
-            system_clock = Gst.SystemClock.obtain()
-            clock_provider = GstNet.NetTimeProvider.new(system_clock, None, self.port)
-            self.base_time = clock_provider.get_property('clock').get_time()
-        else:
-            self.base_time = master_basetime
+            print("init master port %s" % self.port)
+            self.system_clock = Gst.SystemClock.obtain()
+            self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, None, self.port)
+            #self.base_time = clock_provider.get_property('clock').get_time()
+            print("setting clock provider")
+        #else:
+        #    self.base_time = master_basetime
+
+        #print("setting basetime to %s" % (self.base_time,))
 
     @property
     def track(self):
@@ -46,16 +51,8 @@ class Player(object):
         print(Pyro4.current_context.client.sock.getpeername())
         return Pyro4.current_context.client.sock.getpeername()[0]
 
-    def get_basetime(self):
-        return self.base_time
-
-    def play(self):
-        raise NotImplementedError()
-
-    def stop(self):
-        raise NotImplementedError()
-
     def on_message(self, bus, message):
+        #print(str(message))
         t = message.type
         if t == Gst.MessageType.EOS:
             #self.player.set_state(Gst.State.NULL)
@@ -65,7 +62,21 @@ class Player(object):
             err, debug = message.parse_error()
             print("Error: %s" % err, debug)
 
-    def play(self):
+    def play(self, master_basetime=None):
+
+        print("here")
+        if self.is_master:
+            if not self.clock_provider:
+                print("No clock_provider set ?")
+
+            self.base_time = self.clock_provider.get_property('clock').get_time()
+            print("setting clock provider")
+        else:
+            self.base_time = master_basetime
+
+        print("setting basetime to %s" % (self.base_time,))
+        print("---")
+
 
         print("connecting to net clock %s:%s" % (self.ip_address, self.port))
         client_clock = GstNet.NetClientClock.new('clock', self.ip_address, self.port, 0)
@@ -77,16 +88,18 @@ class Player(object):
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
-        self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
         self.playbin.set_latency (0.5);   
+        self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
 
         # wait until things stop
         bus =  self.playbin.get_bus()
         bus.add_signal_watch()
         bus.connect("message", self.on_message) 
 
+        print("setting uri to %s" % (self.track,))
         self.playbin.set_property('uri', self.track)
         self.playbin.set_state(Gst.State.PLAYING)
+        
 
     def install_pyro_event_callback(self, daemon):
         """
@@ -162,7 +175,7 @@ if __name__ == '__main__':
                     master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
                     #print(master_uri)
                     master = Pyro4.Proxy(master_uri)
-                    player = Player(args.clock_port, ip_address=master.get_ip_address(), is_master=False, master_basetime=master.get_basetime())
+                    player = Player(args.clock_port, ip_address=master.get_ip_address(), is_master=False)
                     slave_uri = daemon.register(player)
 
                     register_name = "partyzone.slave (%s)" % gethostname()
@@ -173,7 +186,7 @@ if __name__ == '__main__':
         
         else:  # Controller
 
-            #if not args.uri:
+            #if not args.uri:        self.master_basetime = master_basetime
             #    raise AttributeError("uri parameter required")
 
             with Pyro4.locateNS() as ns:
@@ -188,7 +201,13 @@ if __name__ == '__main__':
                 print("master: " + str(master))
                 print("slaves: " + str(slaves))
 
+                master.track = "file:///home/glenn/devel/PartyZone/test.mp3"
+                master.play()
 
+                slaves[0].track = "file:///home/glenn/devel/PartyZone/test.mp3"
+                slaves[0].play(master_basetime=master.get_basetime())
+                time.sleep(10)
+                slaves[0].stop()
 
                 #master.track = args.uri
                 #master.play()
