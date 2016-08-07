@@ -144,7 +144,10 @@ if __name__ == '__main__':
 
     #parser.add_argument('--uri', type=str, default=None, help="Uri to file. Must be accessible to all players")
 
+    parser.add_argument('--host', type=str, help="Host ip you wish to bind to")
+
     args = parser.parse_args()
+
     #args.uri = args.uri)
 
     Gst.init(sys.argv)
@@ -157,7 +160,7 @@ if __name__ == '__main__':
             player = Player(args.clock_port, is_master=True)
             #player.set_name(args.name)
 
-            with Pyro4.Daemon() as daemon:
+            with Pyro4.Daemon(args.host) as daemon:
                 player_uri = daemon.register(player)
                 with Pyro4.locateNS() as ns:
                     register_name = "partyzone.masterplayer (%s)" % gethostname()
@@ -170,7 +173,7 @@ if __name__ == '__main__':
                 GObject.MainLoop().run()
         elif args.playertype == "slave":
             
-            with Pyro4.Daemon() as daemon:
+            with Pyro4.Daemon(args.host) as daemon:
                 with Pyro4.locateNS() as ns:
                     master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
                     #print(master_uri)
