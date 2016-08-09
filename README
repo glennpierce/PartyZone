@@ -4,4 +4,4 @@ Needs Thrift 0.93
 
 sudo python3 -m pip install Pyro4
 
-python -m Pyro4.naming
+python -m Pyro4.naming --host 0.0.0.0

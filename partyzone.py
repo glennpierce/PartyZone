@@ -87,11 +87,12 @@ class Player(object):
         time.sleep(1.0) # Wait for the clock to stabilise
 
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
+        pipeline = self.playbin.pipeline()
         #self.playbin.set_property('uri', self.track)
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
-        self.playbin.set_latency (0.5);   
+        pipeline.set_latency (1.0);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
 
         # wait until things stop
