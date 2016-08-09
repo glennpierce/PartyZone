@@ -14,6 +14,7 @@ gi.require_version('GstNet', '1.0')
 from gi.repository import GObject, Gst, GstNet
 from socket import gethostname
 
+print(gi.__file__)
 
 @Pyro4.expose
 class Player(object):
@@ -87,12 +88,12 @@ class Player(object):
         time.sleep(1.0) # Wait for the clock to stabilise
 
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
-        pipeline = self.playbin.pipeline()
+        #pipeline = self.playbin.pipeline()
         #self.playbin.set_property('uri', self.track)
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
-        pipeline.set_latency (1.0);   
+        self.playbin.set_latency (1.0);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
 
         # wait until things stop
@@ -181,8 +182,8 @@ if __name__ == '__main__':
                 GObject.MainLoop().run()
         elif args.playertype == "slave":
             
-            if not args.host:   
-                raise AttributeError("host parameter required")
+            #if not args.host:   
+            #    raise AttributeError("host parameter required")
 
             with Pyro4.Daemon(args.host) as daemon:
                 with Pyro4.locateNS() as ns:
