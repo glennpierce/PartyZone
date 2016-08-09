@@ -214,6 +214,10 @@ if __name__ == '__main__':
                 print("master: " + str(master))
                 print("slaves: " + str(slaves))
 
+                if not master:
+                    print("No master player found")
+                    sys.exit(0)
+
                 master.track = "file:///home/glenn/devel/PartyZone/test.mp3"
                 master.play()
 
