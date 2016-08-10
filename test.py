@@ -18,7 +18,9 @@ print(gi.__file__)
 
 Gst.init(sys.argv)
 
-playbin = Gst.ElementFactory.make('playbin', 'playbin')
+playbin = Gst.ElementFactory.make('playbin', 'player')
+
+print(playbin)
 
 playbin.set_latency (1.0);   
 
