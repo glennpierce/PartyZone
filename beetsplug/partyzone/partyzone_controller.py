@@ -40,10 +40,9 @@ app.config.update(dict(
 ))
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 
-
-#@app.before_request
-#def before_request():
-#    g.lib = app.config['lib']
+@app.before_request
+def before_request():
+   g.lib = app.config['lib']
 
 @app.after_request
 def after_request(response):
@@ -52,29 +51,16 @@ def after_request(response):
   response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
   return response
 
-
 @app.route('/')
 def index():
     return flask.render_template('index.html')
 
-@app.route('/trackfile')
-def trackfile():
-    path = "/home/glenn/devel/PartyZone/test.mp3"
-    response = flask.send_file(path, as_attachment=False)
-    response.headers['Content-Length'] = os.path.getsize(path)
+@app.route('/trackfile/<int:item_id>')
+def trackfile(item_id):
+    item = g.lib.get_item(item_id)
+    response = flask.send_file(item.path, as_attachment=False)
+    response.headers['Content-Length'] = os.path.getsize(item.path)
     return response
-
-# @app.route('/trackfile/<int:item_id>')
-# def trackfile(item_id):
-#     # item = g.lib.get_item(item_id)
-#     # response = flask.send_file(item.path, as_attachment=False)
-#     # response.headers['Content-Length'] = os.path.getsize(item.path)
-#     # return response
-#     path = "/home/glenn/devel/PartyZone/test.mp3"
-#     response = flask.send_file(path, as_attachment=False)
-#     response.headers['Content-Length'] = os.path.getsize(path)
-#     return response
-
 
 @app.route('/play', methods= ['POST'])
 def play():
@@ -94,9 +80,10 @@ def play():
     return flask.render_template('showmetadata.html')
 
 
-# @app.route('/get_devices', methods=['GET'])
-# def get_devices():
-#     return jsonify({'devices':allplayerController.GetPlayers()})
+@app.route('/get_devices', methods=['GET'])
+def get_devices():
+    players = ns.list(prefix="partyzone").items()
+    return jsonify({'devices': players})
 
 
 # @app.route('/create_zone', methods= ['POST'])
@@ -223,64 +210,3 @@ def play():
 # @app.route('/showmetadata.html')
 # def showmetadata():
 #     return flask.render_template('showmetadata.html')
-
-
-
-
-
-
-
-
-
-# if __name__ == '__main__':
-
-#     parser = argparse.ArgumentParser(description='Syncronise music accross machines.')
-
-#     parser.add_argument('--playertype', type=str, dest='playertype', default='controller',
-#         help='player type. master or slave (default slave)')
-    
-#     parser.add_argument('--port', type=int, dest='clock_port', default='5342',
-#         help='port used for the network clock')
-
-#     #parser.add_argument('--uri', type=str, default=None, help="Uri to file. Must be accessible to all players")
-
-#     args = parser.parse_args()
-#     #args.uri = args.uri)
-
-#     Gst.init(sys.argv)
-
-#     register_name = None
-
-#     try:
-
-#             #if not args.uri:
-#             #    raise AttributeError("uri parameter required")
-
-#             with Pyro4.locateNS() as ns:
-#                 players = ns.list(prefix="partyzone")
-#                 master = None
-#                 slaves = []
-#                 for name, uri in players.items():
-#                     if "partyzone.masterplayer" in name:
-#                         master = Pyro4.Proxy(uri)
-#                     else:
-#                         slaves.append(Pyro4.Proxy(uri))
-#                 print("master: " + str(master))
-#                 print("slaves: " + str(slaves))
-
-#                 #master.track = args.uri
-#                 #master.play()
-#                 #master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
-#                 # Set the file uri to play
-#                 #master_player.set_track(args.filepath)
-
-#     except KeyboardInterrupt:
-
-#         if register_name:
-#             with Pyro4.locateNS() as ns:
-#                 ns.remove(name=register_name)
-
-#         sys.exit()
-    
-
-    

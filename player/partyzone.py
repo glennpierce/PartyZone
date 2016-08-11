@@ -31,13 +31,8 @@ class Player(object):
             print("init master port %s" % self.port)
             self.system_clock = Gst.SystemClock.obtain()
             self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.master_ip_address, self.port)
-            #self.base_time = clock_provider.get_property('clock').get_time()
             print("setting clock provider")
-        #else:
-        #    self.base_time = master_basetime
-
-        #print("setting basetime to %s" % (self.base_time,))
-
+      
     @property
     def track(self):
         if not self._track_uri:
@@ -51,10 +46,6 @@ class Player(object):
     def get_master_ip_address(self):
         return self.master_ip_address
 
-    #def get_ip_address(self):
-    #    print(Pyro4.current_context.client.sock.getpeername())
-    #    return Pyro4.current_context.client.sock.getpeername()[0]
-
     def on_message(self, bus, message):
         #print(str(message))
         t = message.type
@@ -67,8 +58,6 @@ class Player(object):
             print("Error: %s" % err, debug)
 
     def play(self, master_basetime=None):
-
-        print("here")
         if self.is_master:
             if not self.clock_provider:
                 print("No clock_provider set ?")
@@ -79,8 +68,6 @@ class Player(object):
             self.base_time = master_basetime
 
         print("setting basetime to %s" % (self.base_time,))
-        print("---")
-
 
         print("connecting to net clock %s:%s" % (self.master_ip_address, self.port))
         client_clock = GstNet.NetClientClock.new('clock', self.master_ip_address, self.port, 0)
@@ -88,8 +75,6 @@ class Player(object):
         time.sleep(1.0) # Wait for the clock to stabilise
 
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
-        #pipeline = self.playbin.pipeline()
-        #self.playbin.set_property('uri', self.track)
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
@@ -147,13 +132,9 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, dest='clock_port', default='5342',
         help='port used for the network clock')
 
-    #parser.add_argument('--uri', type=str, default=None, help="Uri to file. Must be accessible to all players")
-
     parser.add_argument('--host', type=str, help="Host ip you wish to bind to")
 
     args = parser.parse_args()
-
-    #args.uri = args.uri)
 
     Gst.init(sys.argv)
 
@@ -167,24 +148,18 @@ if __name__ == '__main__':
                 raise AttributeError("host parameter required")
 
             player = Player(args.clock_port, is_master=True, master_ip_address=args.host)
-            #player.set_name(args.name)
-
+ 
             with Pyro4.Daemon(args.host) as daemon:
                 player_uri = daemon.register(player)
                 with Pyro4.locateNS() as ns:
                     register_name = "partyzone.masterplayer (%s)" % gethostname()
                     ns.register(register_name, player_uri)
- 
-                #print("player running.", player_uri)
 
                 # add a Pyro event callback to the gui's mainloop
                 player.install_pyro_event_callback(daemon)
                 GObject.MainLoop().run()
         elif args.playertype == "slave":
             
-            #if not args.host:   
-            #    raise AttributeError("host parameter required")
-
             with Pyro4.Daemon(args.host) as daemon:
                 with Pyro4.locateNS() as ns:
                     master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
