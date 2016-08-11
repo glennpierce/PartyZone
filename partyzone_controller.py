@@ -14,7 +14,6 @@ from flask import Flask, g, jsonify, request
 from werkzeug.routing import BaseConverter, PathConverter
 from socket import gethostname
 
-# create our little application :)
 app = Flask(__name__)
 app.config.from_object(__name__)
 

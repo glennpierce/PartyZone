@@ -1,0 +1,35 @@
+<template>
+
+  <div repeat.for="item of selectedItems" part="item-template">
+    ${item}
+  </div>
+
+  <ul class="pagination">
+    <li class.bind="currentPage === 0 ? 'disabled': ''">
+      <a click.delegate="goToPage(currentPage - 1)">
+        <span class="glyphicon glyphicon-chevron-left"></span>
+      </a>
+    </li>
+
+    <li show.bind="showFirst">
+      <a click.delegate="goToPage(1)">1...</a>
+    </li>
+
+    <li repeat.for="index of numberOfVisiblePages"
+        class.bind="currentPage === (index + currentBlockStartPageIndex) ? 'active': ''">
+      <a click.delegate="goToPage(index + currentBlockStartPageIndex)">
+        ${index + currentBlockStartPageIndex}
+      </a>
+    </li>
+
+    <li show.bind="showLast">
+      <a click.delegate="goToPage(pages)">...${pages}</a>
+    </li>
+
+    <li class.bind="currentPage < pages ? '': 'disabled'">
+      <a click.delegate="goToPage(currentPage + 1)">
+        <span class="glyphicon glyphicon-chevron-right"></span>
+      </a>
+    </li>
+  </ul>
+</template>

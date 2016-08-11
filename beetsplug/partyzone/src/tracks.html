@@ -1,0 +1,27 @@
+<template>
+  <section>
+    <h2>${heading}</h2>
+
+    <require from="./pager"></require>
+
+    <pager page-size=10 items.bind="tracks">
+      <template replace-part="item-template">
+        <div class="row au-stagger">
+          <div class="card-container">
+            <div class="list-group-item">
+              <div>
+                <h4 class="list-group-item-heading">${item.title}</h4>
+                  <p class="list-group-item-text">Album ${item.album}</p>
+                  <p class="list-group-item-text">Artist ${item.artist}</p>
+              </div>
+              <a href click.delegate="gotoTrackEdit($event, item)">Edit Metadata</a>
+              <br>
+              <a href click.delegate="addToQueue($event, item)">Add to queue</a>
+            </div>
+          </div>
+        </div>
+      </template>
+    </pager>
+   
+  </section>
+</template>
