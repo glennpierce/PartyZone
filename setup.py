@@ -14,12 +14,11 @@ setup(name='partyzone',
       author_email='glennpierce@gmail.com',
       url='https://github.com/glennpierce/PartyZone',
       packages=find_packages(),
-      package_data={
-      'partyzone': ['beetsplug/*'],
-      },
+      package_data={'beetsplug': ['web/dist/*.*']},
       install_requires=[
         'beets>=1.3.7',
         'futures',
+        'Pyro4'
       ],
       scripts=["partyzone"],
      )

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+from __future__ import (division, absolute_import, print_function,
+                        unicode_literals)
+
 import sys
 import gi
 import time
@@ -14,9 +17,6 @@ from beets.plugins import BeetsPlugin
 from flask import Flask, g, jsonify, request
 from werkzeug.routing import BaseConverter, PathConverter
 from socket import gethostname
-
-from __future__ import (division, absolute_import, print_function,
-                        unicode_literals)
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -220,7 +220,6 @@ def get_devices():
 class PartyZoneWebPlugin(BeetsPlugin):
     def __init__(self):
         super(PartyZoneWebPlugin, self).__init__()
-        print("dddd")
         self.config.add({
             'host': u'127.0.0.1',
             'port': 8337,
