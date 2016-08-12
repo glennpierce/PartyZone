@@ -10,9 +10,13 @@ import argparse
 import os
 import os.path
 import flask
+from beets.plugins import BeetsPlugin
 from flask import Flask, g, jsonify, request
 from werkzeug.routing import BaseConverter, PathConverter
 from socket import gethostname
+
+from __future__ import (division, absolute_import, print_function,
+                        unicode_literals)
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -210,3 +214,45 @@ def get_devices():
 # @app.route('/showmetadata.html')
 # def showmetadata():
 #     return flask.render_template('showmetadata.html')
+
+
+# Plugin hook.
+class PartyZoneWebPlugin(BeetsPlugin):
+    def __init__(self):
+        super(PartyZoneWebPlugin, self).__init__()
+        print("dddd")
+        self.config.add({
+            'host': u'127.0.0.1',
+            'port': 8337,
+            'cors': '',
+        })
+
+    def commands(self):
+        cmd = ui.Subcommand('partyzone', help=u'start the partyzone Web interface')
+        cmd.parser.add_option(u'-d', u'--debug', action='store_true',
+                              default=False, help=u'debug mode')
+
+        def func(lib, opts, args):
+            args = ui.decargs(args)
+            if args:
+                self.config['host'] = args.pop(0)
+            if args:
+                self.config['port'] = int(args.pop(0))
+
+            app.config['lib'] = lib
+            # Enable CORS if required.
+            if self.config['cors']:
+                self._log.info(u'Enabling CORS with origin: {0}',
+                               self.config['cors'])
+                from flask.ext.cors import CORS
+                app.config['CORS_ALLOW_HEADERS'] = "Content-Type"
+                app.config['CORS_RESOURCES'] = {
+                    r"/*": {"origins": self.config['cors'].get(str)}
+                }
+                CORS(app)
+            # Start the web application.
+            app.run(host=self.config['host'].get(unicode),
+                    port=self.config['port'].get(int),
+                    debug=opts.debug, threaded=True)
+        cmd.func = func
+        return [cmd]
