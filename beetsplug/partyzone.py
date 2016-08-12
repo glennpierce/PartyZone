@@ -14,6 +14,9 @@ import os
 import os.path
 import flask
 from beets.plugins import BeetsPlugin
+from beets.ui import Subcommand
+from beets import ui
+from beets import util
 from flask import Flask, g, jsonify, request
 from werkzeug.routing import BaseConverter, PathConverter
 from socket import gethostname
