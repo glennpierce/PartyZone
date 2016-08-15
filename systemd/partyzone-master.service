@@ -1,6 +1,6 @@
 [Unit]
-Requires=pyro4-nameserver
-After=pyro4-nameserver
+Requires=pyro4-nameserver.service
+After=pyro4-nameserver.service
 Description=Partyzone master player
 
 [Service]

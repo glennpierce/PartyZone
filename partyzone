@@ -2,6 +2,8 @@
 
 import sys
 import gi
+gi.require_version('Gst', '1.0')
+gi.require_version('GstNet', '1.0')
 import time
 import signal
 import select
@@ -9,12 +11,9 @@ import Pyro4
 import argparse
 import os
 import os.path
-gi.require_version('Gst', '1.0')
-gi.require_version('GstNet', '1.0')
+
 from gi.repository import GObject, Gst, GstNet
 from socket import gethostname
-
-print(gi.__file__)
 
 @Pyro4.expose
 class Player(object):
