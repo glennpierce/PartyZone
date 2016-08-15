@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from setuptools import setup, find_packages
@@ -15,9 +15,8 @@ setup(name='partyzone',
       url='https://github.com/glennpierce/PartyZone',
       packages=find_packages(),
       package_data={'beetsplug': ['web/dist/*.*']},
-      data_files=[('bitmaps', ['bm/b1.gif', 'bm/b2.gif']),
-                  ('config', ['cfg/data.cfg']),
-                  ('/etc/init.d', ['init-script'])],
+      data_files=[('/etc/systemd/system', ['systemd/pyro4-nameserver.service',
+                                           'systemd/partyzone-master.service'])],
       install_requires=[
         'beets>=1.3.7',
         'futures',

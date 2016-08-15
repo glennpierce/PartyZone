@@ -1,16 +1,10 @@
 [Unit]
-BindsTo=Bmos.service
-Requires=postgresql-9.5
-After=network.target postgresql-9.5
-Description=Bmos Server
+After=network.target
+Description=Pyro4 nameserver
 
 [Service]
-Type=forking
-# The PID file is optional, but recommended in the manpage
-# "so that systemd can identify the main process of the daemon"
-PIDFile=/var/run/bmos/bmos.pid
-WorkingDirectory=/opt/bmos
-ExecStart=/opt/bmos/BmosServer.py start
+Type=simple
+ExecStart=/usr/bin/pyro4-ns -n 0.0.0.0
 
 [Install]
 WantedBy=multi-user.target
