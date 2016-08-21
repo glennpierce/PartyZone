@@ -50,6 +50,8 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 @app.before_request
 def before_request():
    g.lib = app.config['lib']
+   g.host = app.config['host']
+   g.port = app.config['port']
 
 @app.after_request
 def after_request(response):
@@ -69,22 +71,30 @@ def trackfile(item_id):
     response.headers['Content-Length'] = os.path.getsize(item.path)
     return response
 
-@app.route('/play', methods= ['POST'])
+@app.route('/playtrack', methods= ['POST'])
 def play():
-    #http://127.0.0.1:5000/
-    uri = request.url_root + '/test.mp3'
-    master.track = "http://127.0.0.1:5000/trackfile"
+
+    data = request.get_json()
+
+    print(data)
+
+    track_id = data['track_id']
+    uri = 'http://' + unicode(g.host) + ':' + unicode(g.port) + '/trackfile/' + unicode(track_id)
+
+    print(uri)
+    
+    master.track = uri
     master.play()
 
-    slaves[0].track = "http://127.0.0.1:5000/trackfile"
-    slaves[0].play(master_basetime=master.get_basetime())
+    #slaves[0].track = "http://127.0.0.1:5000/trackfile"
+    #slaves[0].play(master_basetime=master.get_basetime())
              #   time.sleep(10)
              #   slaves[0].stop()
 
 #                 #master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
 #                 # Set the file uri to play
 #                 #master_player.set_track(args.filepath)
-    return flask.render_template('showmetadata.html')
+    return jsonify({'return': 'ok'})
 
 
 @app.route('/get_devices', methods=['GET'])
@@ -111,18 +121,6 @@ def get_devices():
 #         player.Resume()
 #     else:
 #         allplayerController.PlayQueue()
-#     return jsonify({'return': 'ok'})
-
-
-# @app.route('/playtrack', methods= ['POST'])
-# def playtrack():
-#     data = request.get_json()
-#     player = allplayerController.GetPlayer()
-#     state, position = player.GetPlayingState()
-#     if state == "paused":
-#         player.Resume()
-#     else:
-#         allplayerController.PlayTrack(data['track_id'])
 #     return jsonify({'return': 'ok'})
 
 
@@ -153,32 +151,32 @@ def get_devices():
 #     return jsonify({'return': 'ok'})
 
 
-# @app.route('/update', methods= ['POST'])
-# def update():
-#     data = request.get_json()
-#     item = data['item']
-#     db_item = g.lib.get_item(item['id'])
-#     db_item.update(item)
-#     db_item.try_sync(True, False)
+@app.route('/update', methods= ['POST'])
+def update():
+    data = request.get_json()
+    item = data['item']
+    db_item = g.lib.get_item(item['id'])
+    db_item.update(item)
+    db_item.try_sync(True, False)
 
-#     return jsonify({'return': 'ok'})
+    return jsonify({'return': 'ok'})
 
 
-# @app.route('/tracks/')
-# def tracks():
-#     tracks = []
-#     for item in g.lib.items():
-#         tracks.append(
-#                 {
-#                    'id': item.id,
-#                    'title': item.title,
-#                    'path': item.path,
-#                    'artist': item.artist,
-#                    'album': item.album
-#                 }
-#             )
+@app.route('/tracks/')
+def tracks():
+    tracks = []
+    for item in g.lib.items():
+        tracks.append(
+                {
+                   'id': item.id,
+                   'title': item.title,
+                   'path': item.path,
+                   'artist': item.artist,
+                   'album': item.album
+                }
+            )
 
-#     return jsonify({'items': tracks})  # g.lib.items()
+    return jsonify({'items': tracks})  # g.lib.items()
 
 
 # @app.route('/showtracks.html')
@@ -225,8 +223,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
         super(PartyZoneWebPlugin, self).__init__()
         self.config.add({
             'host': u'127.0.0.1',
-            'port': 8337,
-            'cors': '',
+            'port': 5000,
         })
 
     def commands(self):
@@ -242,18 +239,11 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 self.config['port'] = int(args.pop(0))
 
             app.config['lib'] = lib
-            # Enable CORS if required.
-            if self.config['cors']:
-                self._log.info(u'Enabling CORS with origin: {0}',
-                               self.config['cors'])
-                from flask.ext.cors import CORS
-                app.config['CORS_ALLOW_HEADERS'] = "Content-Type"
-                app.config['CORS_RESOURCES'] = {
-                    r"/*": {"origins": self.config['cors'].get(str)}
-                }
-                CORS(app)
+            app.config['host'] = self.config['host']
+            app.config['port'] = self.config['port']
+
             # Start the web application.
-            app.run(host=self.config['host'].get(unicode),
+            app.run(host='0.0.0.0',
                     port=self.config['port'].get(int),
                     debug=opts.debug, threaded=True)
         cmd.func = func

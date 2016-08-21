@@ -44,7 +44,7 @@ export class Speakers {
   }
 
   volumeChanged(event: any, speaker: Speaker) {
-    this.allplay.adjustVolume(speaker);
-    alert(speaker.volume);
+    //this.allplay.adjustVolume(speaker);
+    //alert(speaker.volume);
   }
 }

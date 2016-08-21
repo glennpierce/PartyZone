@@ -152,30 +152,26 @@ if __name__ == '__main__':
 
             player = Player(args.clock_port, is_master=True, master_ip_address=args.host)
  
-	    register_name = "partyzone.masterplayer (%s)" % gethostname()
+            register_name = "partyzone.masterplayer (%s)" % gethostname()
             ns = Pyro4.naming.locateNS()
 
-	    try:
+            try:
+                existing = ns.lookup(register_name)
+                print("Player still exists in Name Server with id: %s" % existing.object)
+                print("Previous daemon socket port: %d" % existing.port)
+                # start the daemon on the previous port
+                daemon = Pyro4.core.Daemon(host=args.host, port=existing.port)
+                # register the object in the daemon with the old objectId
+                daemon.register(player, objectId=existing.object)
+            except Pyro4.errors.NamingError:
 
-    	        existing = ns.lookup(register_name)
-    		print("Player still exists in Name Server with id: %s" % existing.object)
-    		print("Previous daemon socket port: %d" % existing.port)
-    		# start the daemon on the previous port
-    		daemon = Pyro4.core.Daemon(port=existing.port)
-    		# register the object in the daemon with the old objectId
-    		daemon.register(player, objectId=existing.object)
-	    except Pyro4.errors.NamingError:
-
-    		# just start a new daemon on a random port
-    		daemon = Pyro4.core.Daemon(args.host)
-    		# register the object in the daemon and let it get a new objectId
-    		# also need to register in name server because it's not there yet.
-    		uri = daemon.register(player)
-    		ns.register(register_name, uri)
-		print("Server started.")
-		# add a Pyro event callback to the gui's mainloop
-               	player.install_pyro_event_callback(daemon)
-               	GObject.MainLoop().run()
+                # just start a new daemon on a random port
+                daemon = Pyro4.core.Daemon(args.host)
+                # register the object in the daemon and let it get a new objectId
+                # also need to register in name server because it's not there yet.
+                uri = daemon.register(player)
+                ns.register(register_name, uri)
+                print("Server started.")
 
             # add a Pyro event callback to the gui's mainloop
             player.install_pyro_event_callback(daemon)
@@ -193,12 +189,12 @@ if __name__ == '__main__':
 
             player = Player(args.clock_port, master_ip_address=master_ip, is_master=False)
 
-	    try:
+            try:
                 existing = ns.lookup(register_name)
                 print("Player still exists in Name Server with id: %s" % existing.object)
                 print("Previous daemon socket port: %d" % existing.port)
                 # start the daemon on the previous port
-                daemon = Pyro4.core.Daemon(port=existing.port)
+                daemon = Pyro4.core.Daemon(host=args.host, port=existing.port)
                 # register the object in the daemon with the old objectId
                 daemon.register(player, objectId=existing.object)
             except Pyro4.errors.NamingError:

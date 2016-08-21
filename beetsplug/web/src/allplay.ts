@@ -27,16 +27,12 @@ export class Speaker {
  
   private _selected: boolean;
   id: string;
-  state: string;
   name: string;
-  volume: number;
 
-  constructor(private http: HttpClient, id: string, state: string, name: string, volume: number) {
+  constructor(private http: HttpClient, id: string, name: string) {
     this._selected = false;
     this.id = id;
-    this.state = state;
     this.name = name;
-    this.volume = volume;
   };
 
   get selected(): boolean {
@@ -68,7 +64,7 @@ export class AllPlay {
     this.http.configure(config => {
       config
         .useStandardConfiguration()
-        .withBaseUrl('http://192.168.1.6:8337/')
+        .withBaseUrl('http://127.0.0.1:5000/')
         .withInterceptor({
             request(request) {
                 if(self.debug) {
@@ -182,6 +178,9 @@ export class AllPlay {
     let parameters = { 'track_id': track.id };
     this.http.fetch('playtrack', {
         method: 'post',
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify(parameters)
     });
   }
@@ -207,8 +206,7 @@ export class AllPlay {
  
     for (let i in devices) {
         let v = devices[i];
-        let speaker : Speaker = new Speaker(this.http, v.id, v.state,
-                                      v.name, v.volume);
+        let speaker : Speaker = new Speaker(this.http, v[1], v[0]);
         this.speakers.push(speaker);
     }
 
