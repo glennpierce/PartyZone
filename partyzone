@@ -215,27 +215,9 @@ if __name__ == '__main__':
             GObject.MainLoop().run()
 
 
-##########            
-#            with Pyro4.Daemon(args.host) as daemon:
-#                with Pyro4.locateNS() as ns:
-#                    master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
-#                    #print(master_uri)
-#                    master = Pyro4.Proxy(master_uri)
-#                    print ("master ip :")
-#                    print(master.get_master_ip_address())
-#
-#                    player = Player(args.clock_port, master_ip_address=master.get_master_ip_address(), is_master=False)
-#                    slave_uri = daemon.register(player)
-#
-#                    register_name = "partyzone.slave (%s)" % gethostname()
-#                    ns.register(register_name, slave_uri)
-#
-#                player.install_pyro_event_callback(daemon)
-#                GObject.MainLoop().run()
-############
-
         else:  # Controller
 
+            # Example controller
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
                 master = None
@@ -252,19 +234,22 @@ if __name__ == '__main__':
                     print("No master player found")
                     sys.exit(0)
 
-                master.track = "file:///home/glenn/devel/PartyZone/test.mp3"
-                master.play()
+                # We create a proxy with a PYRONAME uri.
+                # That allows Pyro to look up the object again in the NS when
+                # it needs to reconnect later.
+                obj=slaves[0]
 
-                slaves[0].track = "file:///home/glenn/devel/PartyZone/test.mp3"
-                slaves[0].play(master_basetime=master.get_basetime())
-                #time.sleep(10)
-                #slaves[0].stop()
+                while True:
+                    print("call...")
+                    try:
+                        print(obj.name)
+                        print("Sleeping 1 second")
+                        time.sleep(1)
+                    except Pyro4.errors.ConnectionClosedError:     # or possibly even ProtocolError
+                        print("Connection lost. REBINDING...")
+                        print("(restart the server now)")
+                        obj._pyroReconnect()
 
-                #master.track = args.uri
-                #master.play()
-                #master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
-                # Set the file uri to play
-                #master_player.set_track(args.filepath)
 
     except KeyboardInterrupt:
 
