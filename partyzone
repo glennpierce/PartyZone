@@ -268,9 +268,9 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
 
-        if register_name:
-            with Pyro4.locateNS() as ns:
-                ns.remove(name=register_name)
+        #if register_name:
+        #    with Pyro4.locateNS() as ns:
+        #        ns.remove(name=register_name)
 
         sys.exit()
     
