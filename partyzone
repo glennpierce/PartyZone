@@ -43,6 +43,7 @@ class Player(object):
         self._track_uri = value
 
     def get_master_ip_address(self):
+        print "ddd"
         return self.master_ip_address
 
     def on_message(self, bus, message):
@@ -148,44 +149,33 @@ if __name__ == '__main__':
 
             player = Player(args.clock_port, is_master=True, master_ip_address=args.host)
  
-            with Pyro4.Daemon(args.host) as daemon:
+	    register_name = "partyzone.masterplayer (%s)" % gethostname()
+            ns=Pyro4.naming.locateNS()
 
-		#register_name = "partyzone.masterplayer (%s)" % gethostname()
-                #
-		#try:
-    		#	existing=ns.lookup(register_name)
-    		#	print("Object still exists in Name Server with id: %s" % existing.object)
-    		#	print("Previous daemon socket port: %d" % existing.port)
-    		#	# start the daemon on the previous port
-    		#	daemon = Pyro4.core.Daemon(port=existing.port)
-    		#	# register the object in the daemon with the old objectId
-    		#	daemon.register(obj, objectId=existing.object)
-		#except Pyro4.errors.NamingError:
-    		#	# just start a new daemon on a random port
-    		#	daemon = Pyro4.core.Daemon()
-    		#	# register the object in the daemon and let it get a new objectId
-    		#	# also need to register in name server because it's not there yet.
-    		#	uri = daemon.register(obj)
-    		#	ns.register("example.autoreconnect", uri)
-		#	print("Server started.")
-		#	# add a Pyro event callback to the gui's mainloop
-                #	player.install_pyro_event_callback(daemon)
-                #	GObject.MainLoop().run()
+	    try:
+    	        existing=ns.lookup(register_name)
+    		print("Player still exists in Name Server with id: %s" % existing.object)
+    		print("Previous daemon socket port: %d" % existing.port)
+    		# start the daemon on the previous port
+    		daemon = Pyro4.core.Daemon(port=existing.port)
+    		# register the object in the daemon with the old objectId
+    		daemon.register(player, objectId=existing.object)
+	    except Pyro4.errors.NamingError:
+    		# just start a new daemon on a random port
+    		daemon = Pyro4.core.Daemon()
+    		# register the object in the daemon and let it get a new objectId
+    		# also need to register in name server because it's not there yet.
+    		uri = daemon.register(player)
+    		ns.register(register_name, uri)
+		print("Server started.")
+		# add a Pyro event callback to the gui's mainloop
+               	player.install_pyro_event_callback(daemon)
+               	GObject.MainLoop().run()
 
+            # add a Pyro event callback to the gui's mainloop
+            player.install_pyro_event_callback(daemon)
+            GObject.MainLoop().run()
 
-
-
-
-
-
-                player_uri = daemon.register(player)
-                with Pyro4.locateNS() as ns:
-                    register_name = "partyzone.masterplayer (%s)" % gethostname()
-                    ns.register(register_name, player_uri)
-
-                # add a Pyro event callback to the gui's mainloop
-                player.install_pyro_event_callback(daemon)
-                GObject.MainLoop().run()
         elif args.playertype == "slave":
             
             with Pyro4.Daemon(args.host) as daemon:
@@ -203,6 +193,30 @@ if __name__ == '__main__':
 
                 player.install_pyro_event_callback(daemon)
                 GObject.MainLoop().run()
+
+
+
+
+# We create a proxy with a PYRONAME uri.
+# That allows Pyro to look up the object again in the NS when
+# it needs to reconnect later.
+#obj=Pyro4.core.Proxy("PYRONAME:example.autoreconnect")
+#
+#while True:
+#    print("call...")
+#    try:
+#        obj.method(42)
+#        print("Sleeping 1 second")
+#        time.sleep(1)
+#    except Pyro4.errors.ConnectionClosedError:     # or possibly even ProtocolError
+#        print("Connection lost. REBINDING...")
+#        print("(restart the server now)")
+#        obj._pyroReconnect()
+
+
+
+
+
         
         else:  # Controller
 
