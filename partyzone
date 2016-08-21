@@ -19,7 +19,7 @@ from socket import gethostname
 class Player(object):
 
     def __init__(self, port, is_master=False, master_ip_address="127.0.0.1"):
-        self.name = gethostname()
+        self._name = gethostname()
         self.port = int(port)
         self.is_master = is_master
         self._track_uri = None
@@ -34,7 +34,7 @@ class Player(object):
      
     @property
     def name(self):
-        return self.name
+        return self._name
  
     @property
     def track(self):
