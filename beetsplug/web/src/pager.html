@@ -1,5 +1,10 @@
+<!--
 <template>
+  <require from="materialize-css/bin/materialize.css"></require>
 
+  <md-input md-label="search tracks" md-value.bind="searchText"></md-input><br />
+  <br><br>
+    
   <div repeat.for="item of selectedItems" part="item-template">
     ${item}
   </div>
@@ -15,21 +20,23 @@
       <a click.delegate="goToPage(1)">1...</a>
     </li>
 
-    <li repeat.for="index of numberOfVisiblePages"
-        class.bind="currentPage === (index + currentBlockStartPageIndex) ? 'active': ''">
-      <a click.delegate="goToPage(index + currentBlockStartPageIndex)">
-        ${index + currentBlockStartPageIndex}
-      </a>
+    <li show.bind="showPages" repeat.for="index of numberOfPages"
+          class.bind="currentPage === (index + currentBlockStartPageIndex) ? 'active': ''">
+        <a style="cursor:default;" click.delegate="goToPage(index + currentBlockStartPageIndex)">
+          ${index + currentBlockStartPageIndex}
+        </a>
+      </li>
     </li>
 
     <li show.bind="showLast">
       <a click.delegate="goToPage(pages)">...${pages}</a>
     </li>
 
-    <li class.bind="currentPage < pages ? '': 'disabled'">
-      <a click.delegate="goToPage(currentPage + 1)">
+    <li class.bind="currentPage < numberOfPages - 1 ? '': 'disabled'">
+      <a style="cursor:default;" click.delegate="goToPage(currentPage + 1)">
         <span class="glyphicon glyphicon-chevron-right"></span>
       </a>
     </li>
   </ul>
 </template>
+->

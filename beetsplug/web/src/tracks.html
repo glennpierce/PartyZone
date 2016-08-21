@@ -1,27 +1,31 @@
 <template>
+  
+  <require from="materialize-css/bin/materialize.css"></require>
+  <require from="./tracks.css"></require>
+
   <section>
     <h2>${heading}</h2>
 
-    <require from="./pager"></require>
+    <md-input md-label="search tracks" md-value.bind="searchText" change.delegate="onSearchText($event)"></md-input>
+    <br><br>
 
-    <pager page-size=10 items.bind="tracks">
-      <template replace-part="item-template">
-        <div class="row au-stagger">
+    <div class="row au-stagger" repeat.for="track of pageTracks">
           <div class="card-container">
-            <div class="list-group-item">
+            <div class="list-group-item" click.delegate="playTrack($event, track)">
               <div>
-                <h4 class="list-group-item-heading">${item.title}</h4>
-                  <p class="list-group-item-text">Album ${item.album}</p>
-                  <p class="list-group-item-text">Artist ${item.artist}</p>
+                <h4 class="list-group-item-heading">${track.title}</h4>
+                  <p class="list-group-item-text">Album ${track.album}</p>
+                  <p class="list-group-item-text">Artist ${track.artist}</p>
               </div>
-              <a href click.delegate="gotoTrackEdit($event, item)">Edit Metadata</a>
+              <a href click.delegate="gotoTrackEdit($event, track)">Edit Metadata</a>
               <br>
-              <a href click.delegate="addToQueue($event, item)">Add to queue</a>
+              <a href click.delegate="addToQueue($event, track)">Add to queue</a>
             </div>
           </div>
-        </div>
-      </template>
-    </pager>
+    </div>
+
+    <md-pagination md-on-page-changed.delegate="onPageChanged($event)" md-pages.bind="numberOfPages" 
+        md-active-page.bind="activePage" md-visible-page-links="20"></md-pagination>
    
   </section>
 </template>

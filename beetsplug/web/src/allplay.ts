@@ -1,16 +1,18 @@
 import {inject, Lazy, autoinject, singleton} from 'aurelia-framework';
 import {HttpClient} from 'aurelia-fetch-client';
 
-
 // polyfill fetch client conditionally
 const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
 
-function mapToJson(map) {
-    return JSON.stringify([...map]);
+function mapToJson(map) : string {
+    return JSON.stringify(Array.from(map.entries()));
+    //return "";
 }
 
-function jsonToMap(jsonStr) {
-    return new Map<number, ITrack>(JSON.parse(jsonStr));
+function jsonToMap(jsonStr : string) {
+    let json = JSON.parse(jsonStr);
+    return new Map<number, ITrack>(json);
+    //return new Map();
 }
 
 export interface ITrack {
@@ -50,6 +52,7 @@ export type QueueContainer = Map<number, ITrack>;
 
 @inject(Lazy.of(HttpClient))
 export class AllPlay {
+  debug : boolean = false;
   tracks: Array<ITrack> = [];
   speakers: Array<Speaker> = [];
   queue: QueueContainer = new Map<number, ITrack>();
@@ -60,14 +63,32 @@ export class AllPlay {
 
     this.http = this.getHttpClient();
 
+    let self = this;
+
     this.http.configure(config => {
       config
         .useStandardConfiguration()
-        .withBaseUrl('http://0.0.0.0:8337/');
+        .withBaseUrl('http://192.168.1.6:8337/')
+        .withInterceptor({
+            request(request) {
+                if(self.debug) {
+                  //console.log(`Requesting ${request.method} ${request.url}`);
+                  let jsonTracks = require("./json/tracks.json");
+                  return new Response(JSON.stringify(jsonTracks));   // Fake Data
+                }
+
+                return request; // you c = an return a modified Request, or you can short-circuit the request by returning a Response
+            },
+            response(response) {
+
+                return response;
+            }
+        })
     });
   }
 
   async fetchTracks(): Promise<void> {
+
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
@@ -140,27 +161,36 @@ export class AllPlay {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
+    let entries = Array.from(this.queue.keys());
+    let parameters = { 'queue': entries };
     this.http.fetch('play', {
-        method: 'get'
+        method: 'post',
+        body: JSON.stringify(parameters)
     });
+  }
+
+  async reset_queue() {
+    // ensure fetch is polyfilled before we create the http client
+    this.queue = new Map<number, ITrack>();
+    localStorage.setItem("queue", "[]");
   }
 
   async playTrack(track : ITrack): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
-    let parameters = { 'track_id': track };
+    let parameters = { 'track_id': track.id };
     this.http.fetch('playtrack', {
         method: 'post',
         body: JSON.stringify(parameters)
     });
   }
   
-  async adjustVolume(track : ITrack, volume : number): Promise<void> {
+  async adjustVolume(speaker: Speaker): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
-    let parameters = { 'device_id' : track.id,  'volume': volume};
+    let parameters = { 'device_id' : speaker.id,  'volume': speaker.volume};
     this.http.fetch('adjust_volume', {
         method: 'post',
         body: JSON.stringify(parameters)
@@ -177,8 +207,9 @@ export class AllPlay {
  
     for (let i in devices) {
         let v = devices[i];
-        this.speakers.push(new Speaker(this.http, v.id, v.state,
-                                      v.name, v.volume));
+        let speaker : Speaker = new Speaker(this.http, v.id, v.state,
+                                      v.name, v.volume);
+        this.speakers.push(speaker);
     }
 
     console.log(this);
@@ -192,4 +223,28 @@ export class AllPlay {
       return this.speakers;
   }
 
+  async selectSpeakers() {
+
+      let speakerIds = Array<string>();
+
+      for (let i in this.speakers) {
+        let s = this.speakers[i];
+        if(s.selected) {
+          speakerIds.push(s.id);
+        }
+      }
+
+      localStorage.setItem("speakers", JSON.stringify(speakerIds));
+
+      let parameters = {'selected_devices': speakerIds};
+
+      this.http.fetch('create_zone', {
+        method: 'post',
+        body: JSON.stringify(parameters)
+      });
+
+      //this.queue = jsonToMap(localStorage.getItem("queue"));
+
+      //$cookies.putObject('selected_devices', $scope.selected_devices);
+  }
 }
