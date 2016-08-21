@@ -31,7 +31,11 @@ class Player(object):
             self.system_clock = Gst.SystemClock.obtain()
             self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.master_ip_address, self.port)
             print("setting clock provider")
-      
+     
+    @property
+    def name(self):
+        return self.name:
+ 
     @property
     def track(self):
         if not self._track_uri:
@@ -141,21 +145,6 @@ if __name__ == '__main__':
 
     try:
 
-
-#player = Player(args.clock_port, is_master=True, master_ip_address=args.host)
-#
-#            with Pyro4.Daemon(args.host) as daemon:
-#                player_uri = daemon.register(player)
-#                with Pyro4.locateNS() as ns:
-#                    register_name = "partyzone.masterplayer (%s)" % gethostname()
-#                    ns.register(register_name, player_uri)
-#
-#                # add a Pyro event callback to the gui's mainloop
-#                player.install_pyro_event_callback(daemon)
-#                GObject.MainLoop().run()
-
-
-
         if args.playertype == "master":
 
             if not args.host:   
@@ -194,6 +183,7 @@ if __name__ == '__main__':
 
         elif args.playertype == "slave":
 
+            ns = Pyro4.naming.locateNS()
             # Get master ip address
             master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
             master = Pyro4.Proxy(master_uri)
@@ -201,7 +191,6 @@ if __name__ == '__main__':
             master_ip = master.get_master_ip_address()           
             print ("master ip : %s" % (master_ip,))
 
-	    ns = Pyro4.naming.locateNS()
             player = Player(args.clock_port, master_ip_address=master_ip, is_master=False)
 
 	    try:
@@ -246,22 +235,6 @@ if __name__ == '__main__':
 ############
 
         else:  # Controller
-
-        	# We create a proxy with a PYRONAME uri.
-		# That allows Pyro to look up the object again in the NS when
-		# it needs to reconnect later.
-		#obj=Pyro4.core.Proxy("PYRONAME:example.autoreconnect")
-		#
-		#while True:
-		#    print("call...")
-		#    try:
-		#        obj.method(42)
-		#        print("Sleeping 1 second")
-		#        time.sleep(1)
-		#    except Pyro4.errors.ConnectionClosedError:     # or possibly even ProtocolError
-		#        print("Connection lost. REBINDING...")
-		#        print("(restart the server now)")
-		#        obj._pyroReconnect()
 
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
