@@ -149,6 +149,35 @@ if __name__ == '__main__':
             player = Player(args.clock_port, is_master=True, master_ip_address=args.host)
  
             with Pyro4.Daemon(args.host) as daemon:
+
+		#register_name = "partyzone.masterplayer (%s)" % gethostname()
+                #
+		#try:
+    		#	existing=ns.lookup(register_name)
+    		#	print("Object still exists in Name Server with id: %s" % existing.object)
+    		#	print("Previous daemon socket port: %d" % existing.port)
+    		#	# start the daemon on the previous port
+    		#	daemon = Pyro4.core.Daemon(port=existing.port)
+    		#	# register the object in the daemon with the old objectId
+    		#	daemon.register(obj, objectId=existing.object)
+		#except Pyro4.errors.NamingError:
+    		#	# just start a new daemon on a random port
+    		#	daemon = Pyro4.core.Daemon()
+    		#	# register the object in the daemon and let it get a new objectId
+    		#	# also need to register in name server because it's not there yet.
+    		#	uri = daemon.register(obj)
+    		#	ns.register("example.autoreconnect", uri)
+		#	print("Server started.")
+		#	# add a Pyro event callback to the gui's mainloop
+                #	player.install_pyro_event_callback(daemon)
+                #	GObject.MainLoop().run()
+
+
+
+
+
+
+
                 player_uri = daemon.register(player)
                 with Pyro4.locateNS() as ns:
                     register_name = "partyzone.masterplayer (%s)" % gethostname()
