@@ -34,7 +34,7 @@ class Player(object):
      
     @property
     def name(self):
-        return self.name:
+        return self.name
  
     @property
     def track(self):
