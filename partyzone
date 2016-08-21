@@ -18,7 +18,7 @@ from socket import gethostname
 @Pyro4.expose
 class Player(object):
 
-    def __init__(self, port, is_master=False, master_ip_address="0.0.0.0"):
+    def __init__(self, port, is_master=False, master_ip_address="127.0.0.1"):
         self.name = gethostname()
         self.port = int(port)
         self.is_master = is_master
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, dest='clock_port', default='5342',
         help='port used for the network clock')
 
-    parser.add_argument('--host', type=str, default='0.0.0.0', help="Host ip you wish to bind to")
+    parser.add_argument('--host', type=str, help="Host ip you wish to bind to")
 
     args = parser.parse_args()
 
