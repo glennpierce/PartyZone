@@ -234,17 +234,20 @@ if __name__ == '__main__':
             # That allows Pyro to look up the object again in the NS when
             # it needs to reconnect later.
             obj=master
+            slave=slaves[0]
 
             while True:
                 print("call...")
                 try:
                     print(obj.name)
+                    print(slave.name)
                     print("Sleeping 1 second")
                     time.sleep(1)
                 except Pyro4.errors.ConnectionClosedError:     # or possibly even ProtocolError
                     print("Connection lost. REBINDING...")
                     print("(restart the server now)")
                     obj._pyroReconnect()
+                    slave._pyroReconnect()
 
 
     except KeyboardInterrupt:

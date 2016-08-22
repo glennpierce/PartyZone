@@ -82,12 +82,13 @@ def play():
     uri = 'http://' + unicode(g.host) + ':' + unicode(g.port) + '/trackfile/' + unicode(track_id)
 
     print(uri)
-    
+
     master.track = uri
     master.play()
 
-    #slaves[0].track = "http://127.0.0.1:5000/trackfile"
-    #slaves[0].play(master_basetime=master.get_basetime())
+    slaves[0].track = uri
+    slaves[0].play(master_basetime=master.get_basetime())
+
              #   time.sleep(10)
              #   slaves[0].stop()
 
@@ -96,6 +97,11 @@ def play():
 #                 #master_player.set_track(args.filepath)
     return jsonify({'return': 'ok'})
 
+@app.route('/stop')
+def stop():
+    master.stop()
+    slaves[0].stop()
+    return jsonify({'return': 'ok'})
 
 @app.route('/get_devices', methods=['GET'])
 def get_devices():
@@ -133,11 +139,7 @@ def get_devices():
 #     return jsonify({'return': 'ok'})
 
 
-# @app.route('/stop')
-# def stop():
-#     player = allplayerController.GetPlayer()
-#     player.Stop()
-#     return jsonify({'return': 'ok'})
+
 
 
 # @app.route('/pause')
