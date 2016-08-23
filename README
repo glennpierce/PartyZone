@@ -1,0 +1,16 @@
+
+Needs Thrift 0.93
+./configure --prefix=/usr/local --enable-tests=no
+
+sudo python3 -m pip install Pyro4
+
+python -m Pyro4.naming --host 0.0.0.0
+
+export GST_CFLAGS=/usr/local/include/gstreamer-1.0/
+export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+export GST_LIBS=/usr/local/lib/
+
+
+libgirepository1.0-dev
+
+export GI_TYPELIB_PATH=/usr/local/lib/girepository-1.0/
