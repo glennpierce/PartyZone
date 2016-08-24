@@ -31,7 +31,11 @@ class Player(object):
             self.system_clock = Gst.SystemClock.obtain()
             self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.master_ip_address, self.port)
             print("setting clock provider")
-     
+            if not self.clock_provider:
+                print("No clock_provider set ?")
+
+            self.base_time = self.clock_provider.get_property('clock').get_time()     
+
     @property
     def name(self):
         return self._name
@@ -62,18 +66,19 @@ class Player(object):
 
     def play(self, master_basetime=None):
         if self.is_master:
-            if not self.clock_provider:
-                print("No clock_provider set ?")
+            #if not self.clock_provider:
+            #    print("No clock_provider set ?")
 
-            self.base_time = self.clock_provider.get_property('clock').get_time()
+            #self.base_time = self.clock_provider.get_property('clock').get_time()
             print("setting clock provider")
+            return
         else:
             self.base_time = master_basetime
 
         print("setting basetime to %s" % (self.base_time,))
 
         print("connecting to net clock %s:%s" % (self.master_ip_address, self.port))
-        client_clock = GstNet.NetClientClock.new('clock', self.master_ip_address, self.port, 0)
+        client_clock = GstNet.NetClientClock.new('clock', self.master_ip_address, self.port, self.base_time)
         
         time.sleep(1.0) # Wait for the clock to stabilise
 
@@ -81,7 +86,7 @@ class Player(object):
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
-        self.playbin.set_latency (1.0);   
+        #self.playbin.set_latency (1.0);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
 
         # wait until things stop
