@@ -9,7 +9,7 @@ def main(args):
     _, uri, port = args
     port = int(port)
 
-    Gst.init()
+    Gst.init(sys.argv)
 
     # make the pipeline
     pipeline = Gst.parse_launch('playbin')
