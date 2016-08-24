@@ -1,0 +1,14 @@
+<template>
+    <require from="materialize-css/bin/materialize.css"></require>
+    <section>
+        <h2>${heading}</h2>
+        <ul>
+            <li class="speaker" repeat.for="speaker of speakers">
+                <md-checkbox md-checked.bind="speaker.selected" change.delegate="speakerSelected($event, speaker)">${speaker.name}</md-checkbox>
+
+                <md-range class="volume_control" md-value.bind="speaker.volume" md-min="0" 
+                        change.delegate="volumeChanged($event, speaker)" md-max="100" md-step="1"></md-range>
+            </li>
+        </ul>
+    </section>
+</template>

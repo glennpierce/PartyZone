@@ -1,0 +1,11 @@
+.pagination > li > a, .pagination > li > span {
+    position: relative;
+    float: none;
+    padding: 0 0;
+    margin-left: -1px;
+    line-height: 1.42857143;
+    color: black;
+    text-decoration: none;
+    background-color: #fff;
+    border: none;
+}

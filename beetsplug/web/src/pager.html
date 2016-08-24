@@ -1,0 +1,42 @@
+<!--
+<template>
+  <require from="materialize-css/bin/materialize.css"></require>
+
+  <md-input md-label="search tracks" md-value.bind="searchText"></md-input><br />
+  <br><br>
+    
+  <div repeat.for="item of selectedItems" part="item-template">
+    ${item}
+  </div>
+
+  <ul class="pagination">
+    <li class.bind="currentPage === 0 ? 'disabled': ''">
+      <a click.delegate="goToPage(currentPage - 1)">
+        <span class="glyphicon glyphicon-chevron-left"></span>
+      </a>
+    </li>
+
+    <li show.bind="showFirst">
+      <a click.delegate="goToPage(1)">1...</a>
+    </li>
+
+    <li show.bind="showPages" repeat.for="index of numberOfPages"
+          class.bind="currentPage === (index + currentBlockStartPageIndex) ? 'active': ''">
+        <a style="cursor:default;" click.delegate="goToPage(index + currentBlockStartPageIndex)">
+          ${index + currentBlockStartPageIndex}
+        </a>
+      </li>
+    </li>
+
+    <li show.bind="showLast">
+      <a click.delegate="goToPage(pages)">...${pages}</a>
+    </li>
+
+    <li class.bind="currentPage < numberOfPages - 1 ? '': 'disabled'">
+      <a style="cursor:default;" click.delegate="goToPage(currentPage + 1)">
+        <span class="glyphicon glyphicon-chevron-right"></span>
+      </a>
+    </li>
+  </ul>
+</template>
+->
