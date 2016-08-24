@@ -16,12 +16,12 @@ def main(args):
     pipeline.set_property('uri', uri) # uri interface
 
     # make sure some other clock isn't autoselected
-    clock = pipeline.get_clock()
+    clock = Gst.SystemClock.obtain()
     print 'Using clock: ', clock
     pipeline.use_clock(clock)
 
     # this will start a server listening on a UDP port
-    clock_provider = GstNet.NetTimeProvider.new(clock, None, port)
+    clock_provider = GstNet.NetTimeProvider.new(clock, '0.0.0.0', port)
 
     # we explicitly manage our base time
     base_time = clock.get_time()
