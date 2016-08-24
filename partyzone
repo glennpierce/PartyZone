@@ -179,6 +179,9 @@ if __name__ == '__main__':
 
         elif args.playertype == "slave":
 
+            if not args.host:
+                raise AttributeError("host parameter required")
+
             ns = Pyro4.naming.locateNS()
             # Get master ip address
             master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
@@ -235,6 +238,15 @@ if __name__ == '__main__':
             # it needs to reconnect later.
             obj=master
             slave=slaves[0]
+
+            print(master.get_basetime())
+            uri = 'file:///home/test2.mp3'
+
+            slaves[0].track = uri
+            slaves[0].play(master_basetime=master.get_basetime())
+
+            slaves[1].track = uri
+            slaves[1].play(master_basetime=master.get_basetime())
 
             while True:
                 print("call...")

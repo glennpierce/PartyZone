@@ -83,11 +83,18 @@ def play():
 
     print(uri)
 
-    master.track = uri
-    master.play()
+    #master.track = uri
+    #master.play()
+
+    print(slaves)
+
+    print(master.get_basetime())
 
     slaves[0].track = uri
     slaves[0].play(master_basetime=master.get_basetime())
+
+    slaves[1].track = uri
+    slaves[1].play(master_basetime=master.get_basetime())
 
              #   time.sleep(10)
              #   slaves[0].stop()
