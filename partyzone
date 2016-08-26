@@ -24,17 +24,15 @@ class Player(object):
         self.is_master = is_master
         self._track_uri = None
         self.master_ip_address = master_ip_address
-        #self.master_basetime = master_basetime
         
         if self.is_master:
             print("init master port %s" % self.port)
             self.system_clock = Gst.SystemClock.obtain()
             self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.master_ip_address, self.port)
-            print("setting clock provider")
             if not self.clock_provider:
                 print("No clock_provider set ?")
 
-            self.base_time = self.clock_provider.get_property('clock').get_time()     
+	self.base_time = Gst.CLOCK_TIME_NONE
 
     @property
     def name(self):
@@ -65,15 +63,6 @@ class Player(object):
             print("Error: %s" % err, debug)
 
     def play(self, master_basetime=None):
-        if self.is_master:
-            #if not self.clock_provider:
-            #    print("No clock_provider set ?")
-
-            #self.base_time = self.clock_provider.get_property('clock').get_time()
-            print("setting clock provider")
-            return
-        else:
-            self.base_time = master_basetime
 
         print("setting basetime to %s" % (self.base_time,))
 
@@ -85,8 +74,8 @@ class Player(object):
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
 
         self.playbin.use_clock(client_clock)
-        self.playbin.set_base_time(self.base_time)
-        #self.playbin.set_latency (1.0);   
+        #self.playbin.set_base_time(self.base_time)
+        self.playbin.set_latency (0.5);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
 
         # wait until things stop
@@ -96,6 +85,14 @@ class Player(object):
 
         print("setting uri to %s" % (self.track,))
         self.playbin.set_property('uri', self.track)
+
+        if self.is_master:
+            self.base_time = self.clock_provider.get_property('clock').get_time()
+        else:
+            self.base_time = master_basetime
+       
+        print("setting basetime to %s" % (self.base_time,))
+        self.playbin.set_base_time(self.base_time)
         self.playbin.set_state(Gst.State.PLAYING)
         
 
@@ -141,6 +138,8 @@ if __name__ == '__main__':
         help='port used for the network clock')
 
     parser.add_argument('--host', type=str, help="Host ip you wish to bind to")
+
+    parser.add_argument('--test-sync', dest='testsync', help="Play test file to check sync")
 
     args = parser.parse_args()
 
@@ -219,9 +218,9 @@ if __name__ == '__main__':
             GObject.MainLoop().run()
 
 
-        else:  # Controller
+	elif args.testsync:
 
-            # Example controller
+	    # Example controller
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
                 master = None
@@ -238,33 +237,41 @@ if __name__ == '__main__':
                     print("No master player found")
                     sys.exit(0)
 
-            # We create a proxy with a PYRONAME uri.
-            # That allows Pyro to look up the object again in the NS when
-            # it needs to reconnect later.
-            obj=master
-            slave=slaves[0]
+            path = os.path.dirname(os.path.realpath(__file__))
+	    filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
 
-            print(master.get_basetime())
-            uri = 'file:///home/test2.mp3'
+	    master.track = uri
+            master.play()
 
             slaves[0].track = uri
             slaves[0].play(master_basetime=master.get_basetime())
 
-            slaves[1].track = uri
-            slaves[1].play(master_basetime=master.get_basetime())
+
+
+        else:  # Controller
+
+            # Example controller
+            with Pyro4.locateNS() as ns:
+                players = ns.list(prefix="partyzone")
+                player_objects = []
+                for name, uri in players.items():
+                    player_objects.append(Pyro4.Proxy(uri))
+
+                if not player_objects:
+                    print("No players found")
+                    sys.exit(0)
 
             while True:
                 print("call...")
-                try:
-                    print(obj.name)
-                    print(slave.name)
-                    print("Sleeping 1 second")
-                    time.sleep(1)
-                except Pyro4.errors.ConnectionClosedError:     # or possibly even ProtocolError
-                    print("Connection lost. REBINDING...")
-                    print("(restart the server now)")
-                    obj._pyroReconnect()
-                    slave._pyroReconnect()
+                for p in player_objects:
+                    try:
+                        print(p.name)
+                        print("Sleeping 1 second")
+                        time.sleep(1)
+                    except Pyro4.errors.ConnectionClosedError:     # or possibly even ProtocolError
+                        print("Connection lost. REBINDING...")
+                        print("(restart the server now)")
+                        p._pyroReconnect()
 
 
     except KeyboardInterrupt:
