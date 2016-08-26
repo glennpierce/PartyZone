@@ -238,12 +238,13 @@ if __name__ == '__main__':
                     sys.exit(0)
 
             path = os.path.dirname(os.path.realpath(__file__))
-	    filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
+	    #filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
+            filepath = 'file://home/glenn/test/mp3'
 
-	    master.track = uri
+	    master.track = filepath
             master.play()
 
-            slaves[0].track = uri
+            slaves[0].track = filepath
             slaves[0].play(master_basetime=master.get_basetime())
 
 
