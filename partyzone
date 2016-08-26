@@ -11,6 +11,7 @@ import Pyro4
 import argparse
 import os
 import os.path
+import socket
 
 from gi.repository import GObject, Gst, GstNet
 from socket import gethostname
@@ -18,17 +19,17 @@ from socket import gethostname
 @Pyro4.expose
 class Player(object):
 
-    def __init__(self, port, is_master=False, master_ip_address="127.0.0.1"):
+    def __init__(self, host, clock_port, master=None):
         self._name = gethostname()
-        self.port = int(port)
-        self.is_master = is_master
+        self._host = host
+        self.clock_port = int(clock_port)
+        self.master = master
+        self.is_master = True if not master else False
         self._track_uri = None
-        self.master_ip_address = master_ip_address
-        
+
         if self.is_master:
-            print("init master port %s" % self.port)
             self.system_clock = Gst.SystemClock.obtain()
-            self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.master_ip_address, self.port)
+            self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.host, self.clock_port)
             if not self.clock_provider:
                 print("No clock_provider set ?")
 
@@ -37,6 +38,10 @@ class Player(object):
     @property
     def name(self):
         return self._name
+
+    @property
+    def host(self):
+        return self._host
  
     @property
     def track(self):
@@ -48,11 +53,7 @@ class Player(object):
     def track(self, value):
         self._track_uri = value
 
-    def get_master_ip_address(self):
-        return self.master_ip_address
-
     def on_message(self, bus, message):
-        #print(str(message))
         t = message.type
         if t == Gst.MessageType.EOS:
             #self.player.set_state(Gst.State.NULL)
@@ -62,17 +63,24 @@ class Player(object):
             err, debug = message.parse_error()
             print("Error: %s" % err, debug)
 
-    def play(self, master_basetime=None):
+    def get_basetime(self):
+        return self.base_time
+
+    def state(self):
+        return self.playbin.get_state()
+
+    def stop(self):
+        self.playbin.set_state(Gst.State.NULL)
+
+    def play(self):
 
         if self.is_master:
             self.base_time = self.clock_provider.get_property('clock').get_time()
         else:
-            self.base_time = master_basetime
+            self.base_time = self.master.get_basetime()
 
-        print("setting basetime to %s" % (self.base_time,))
-
-        print("connecting to net clock %s:%s" % (self.master_ip_address, self.port))
-        client_clock = GstNet.NetClientClock.new('clock', self.master_ip_address, self.port, self.base_time)
+        print("connecting to net clock %s:%s" % (self.master.host, self.clock_port))
+        client_clock = GstNet.NetClientClock.new('clock', self.host, self.clock_port, self.base_time)
         
         time.sleep(2.0) # Wait for the clock to stabilise
 
@@ -80,13 +88,9 @@ class Player(object):
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
-        self.playbin.set_latency (0.5);   
+        self.playbin.set_latency (0.1);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
  
-        self.pulsesink = Gst.ElementFactory.make("pulsesink", "pulsesink") 
-        self.playbin.set_property('audio-sink', self.pulsesink)
-        print(self.playbin.get_property('audio-sink'))
-
         # wait until things stop
         bus =  self.playbin.get_bus()
         bus.add_signal_watch()
@@ -97,7 +101,7 @@ class Player(object):
        
         print("setting basetime to %s" % (self.base_time,))
         self.playbin.set_state(Gst.State.PLAYING)
-        
+       
 
     def install_pyro_event_callback(self, daemon):
         """
@@ -119,18 +123,13 @@ class Player(object):
 
         GObject.timeout_add(20, pyro_event)
 
-    def get_basetime(self):
-        return self.base_time
-
-    def state(self):
-        return self.playbin.get_state()
-
-    def stop(self):
-        print("stop")
-        self.playbin.set_state(Gst.State.NULL)
 
 
 if __name__ == '__main__':
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('google.com', 0))
+    default_host = s.getsockname()[0]
 
     parser = argparse.ArgumentParser(description='Syncronise music accross machines.')
 
@@ -140,7 +139,7 @@ if __name__ == '__main__':
     parser.add_argument('--port', type=int, dest='clock_port', default='5342',
         help='port used for the network clock')
 
-    parser.add_argument('--host', type=str, help="Host ip you wish to bind to")
+    parser.add_argument('--host', type=str, default=default_host, help="Host ip you wish to bind to")
 
     parser.add_argument('--test-sync', dest='testsync', action='store_true', help="Play test file to check sync")
     parser.set_defaults(testsync=False)
@@ -158,7 +157,7 @@ if __name__ == '__main__':
             if not args.host:   
                 raise AttributeError("host parameter required")
 
-            player = Player(args.clock_port, is_master=True, master_ip_address=args.host)
+            player = Player(args.host, args.clock_port)
  
             register_name = "partyzone.masterplayer (%s)" % gethostname()
             ns = Pyro4.naming.locateNS()
@@ -195,10 +194,7 @@ if __name__ == '__main__':
             master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
             master = Pyro4.Proxy(master_uri)
             register_name = "partyzone.slave (%s)" % gethostname()
-            master_ip = master.get_master_ip_address()           
-            print ("master ip : %s" % (master_ip,))
-
-            player = Player(args.clock_port, master_ip_address=master_ip, is_master=False)
+            player = Player(args.host, args.clock_port, master)
 
             try:
                 existing = ns.lookup(register_name)
@@ -249,9 +245,7 @@ if __name__ == '__main__':
             master.play()
 
             slaves[0].track = filepath
-            slaves[0].play(master_basetime=master.get_basetime())
-
-
+            slaves[0].play()
 
         else:  # Controller
 
