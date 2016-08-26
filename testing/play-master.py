@@ -29,7 +29,7 @@ def main(args):
 
     # we explicitly manage our base time
     base_time = clock.get_time()
-    print ('Start slave as: python ./play-slave.py %s [IP] %d %d'
+    print ('Start slave as: python ./play-slave.py %s 192.168.1.149 %d %d'
            % (uri, port, base_time))
 
     # disable the pipeline's management of base_time -- we're going

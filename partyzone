@@ -139,7 +139,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--host', type=str, help="Host ip you wish to bind to")
 
-    parser.add_argument('--test-sync', dest='testsync', help="Play test file to check sync")
+    parser.add_argument('--test-sync', dest='testsync', action='store_true', help="Play test file to check sync")
+    parser.set_defaults(testsync=False)
 
     args = parser.parse_args()
 
