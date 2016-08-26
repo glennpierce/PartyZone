@@ -83,6 +83,8 @@ class Player(object):
         self.playbin.set_latency (0.5);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
 
+        print(self.playbin.get_property('audio-sink'))
+
         # wait until things stop
         bus =  self.playbin.get_bus()
         bus.add_signal_watch()
