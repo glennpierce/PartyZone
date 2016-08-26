@@ -83,7 +83,7 @@ class Player(object):
         self.playbin.set_latency (0.5);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
  
-        self.pulsesink = gst.element_factory_make("pulsesink", "pulsesink") 
+        self.pulsesink = Gst.ElementFactory.make("pulsesink", "pulsesink") 
         self.playbin.set_property('audio-sink', self.pulsesink)
         print(self.playbin.get_property('audio-sink'))
 
