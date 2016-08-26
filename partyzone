@@ -24,8 +24,14 @@ class Player(object):
         self._host = host
         self.clock_port = int(clock_port)
         self.master = master
-        self.is_master = True if not master else False
+        self.is_master = False if master else True
         self._track_uri = None
+        self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
+
+        if self.is_master:
+            print("master player started on host: %s" % (self._host,))
+        else:
+            print("slave player started on host: %s" % (self._host,))
 
         if self.is_master:
             self.system_clock = Gst.SystemClock.obtain()
@@ -34,6 +40,7 @@ class Player(object):
                 print("No clock_provider set ?")
 
 	self.base_time = Gst.CLOCK_TIME_NONE
+        self.stop()
 
     @property
     def name(self):
@@ -83,8 +90,6 @@ class Player(object):
         client_clock = GstNet.NetClientClock.new('clock', self.host, self.clock_port, self.base_time)
         
         time.sleep(2.0) # Wait for the clock to stabilise
-
-        self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
@@ -274,6 +279,13 @@ if __name__ == '__main__':
 
 
     except KeyboardInterrupt:
+
+        #with Pyro4.locateNS() as ns:
+        #    players = ns.list(prefix="partyzone")
+            
+        #    for name, uri in players.items():
+        #        player = Pyro4.Proxy(uri)
+        #        player.cleanup()
 
         #if register_name:
         #    with Pyro4.locateNS() as ns:
