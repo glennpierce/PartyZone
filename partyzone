@@ -73,10 +73,10 @@ class Player(object):
 
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
 
-        self.playbin.use_clock(client_clock)
+        #self.playbin.use_clock(client_clock)
         #self.playbin.set_base_time(self.base_time)
-        self.playbin.set_latency (0.5);   
-        self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
+        #self.playbin.set_latency (0.5);   
+        #self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
 
         # wait until things stop
         bus =  self.playbin.get_bus()
@@ -92,7 +92,10 @@ class Player(object):
             self.base_time = master_basetime
        
         print("setting basetime to %s" % (self.base_time,))
+        self.playbin.use_clock(client_clock)
         self.playbin.set_base_time(self.base_time)
+        self.playbin.set_latency (0.5);
+        self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
         self.playbin.set_state(Gst.State.PLAYING)
         
 
