@@ -74,12 +74,12 @@ class Player(object):
         print("connecting to net clock %s:%s" % (self.master_ip_address, self.port))
         client_clock = GstNet.NetClientClock.new('clock', self.master_ip_address, self.port, self.base_time)
         
-        time.sleep(1.0) # Wait for the clock to stabilise
+        time.sleep(2.0) # Wait for the clock to stabilise
 
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
 
         self.playbin.use_clock(client_clock)
-        #self.playbin.set_base_time(self.base_time)
+        self.playbin.set_base_time(self.base_time)
         self.playbin.set_latency (0.5);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
 
@@ -239,7 +239,7 @@ if __name__ == '__main__':
 
             path = os.path.dirname(os.path.realpath(__file__))
 	    #filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
-            filepath = 'file://home/glenn/test/mp3'
+            filepath = 'file:///home/glenn/test.mp3'
 
 	    master.track = filepath
             master.play()
