@@ -78,6 +78,7 @@ class Player(object):
     def get_basetime(self):
         return self.base_time
 
+    @property
     def state(self):
         return self.playbin.get_state()
 
