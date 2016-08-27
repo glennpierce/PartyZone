@@ -41,7 +41,8 @@ class Player(object):
                 print("No clock_provider set ?")
         else:
             # Check that master is playing or not
-            print(self.master.state())
+            if self.master.state() == Gst.State.PLAYING:
+                print "restart playing"
 
         self.base_time = Gst.CLOCK_TIME_NONE
         self.stop()
