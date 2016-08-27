@@ -80,7 +80,7 @@ class Player(object):
 
     @property
     def state(self):
-        return self.playbin.get_state()
+        return self.playbin.get_state(Gst.CLOCK_TIME_NONE)
 
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
