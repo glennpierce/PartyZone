@@ -79,7 +79,7 @@ class Player(object):
         return self.base_time
 
     def state(self):
-        print(self.playbin.get_state(Gst.CLOCK_TIME_NONE))
+        return self.playbin.get_state(Gst.CLOCK_TIME_NONE)[1]
 
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
@@ -252,10 +252,10 @@ if __name__ == '__main__':
                     sys.exit(0)
 
             path = os.path.dirname(os.path.realpath(__file__))
-	    #filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
+	        #filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
             filepath = 'file:///home/glenn/test.mp3'
 
-	    master.track = filepath
+	        master.track = filepath
             master.play()
 
             if len(slaves) > 0:
