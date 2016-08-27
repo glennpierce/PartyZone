@@ -29,17 +29,18 @@ class Player(object):
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
 
         if self.is_master:
-            print("master player started on host: %s" % (self._host,))
+            print("master player started on host: %s" % (self.host,))
         else:
-            print("slave player started on host: %s" % (self._host,))
+            print("slave player started on host: %s" % (self.host,))
 
         if self.is_master:
             self.system_clock = Gst.SystemClock.obtain()
+            time.sleep(2.0) # Wait for the clock to stabilise
             self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.host, self.clock_port)
             if not self.clock_provider:
                 print("No clock_provider set ?")
 
-	self.base_time = Gst.CLOCK_TIME_NONE
+        self.base_time = Gst.CLOCK_TIME_NONE
         self.stop()
 
     @property
@@ -58,6 +59,7 @@ class Player(object):
 
     @track.setter
     def track(self, value):
+        print("seeting track to %s" % (value,))
         self._track_uri = value
 
     def on_message(self, bus, message):
@@ -82,19 +84,23 @@ class Player(object):
     def play(self):
 
         if self.is_master:
-            self.base_time = self.clock_provider.get_property('clock').get_time()
+            #print("connecting to net clock %s:%s" % (self.host, self.clock_port))
+            #self.base_time = self.clock_provider.get_property('clock').get_time()
+            #client_clock = GstNet.NetClientClock.new('clock', self.host, self.clock_port, self.base_time)
+            client_clock = self.system_clock
+            self.base_time = client_clock.get_time()
         else:
+            print("connecting to net clock %s:%s" % (self.master.host, self.clock_port))
             self.base_time = self.master.get_basetime()
-
-        print("connecting to net clock %s:%s" % (self.master.host, self.clock_port))
-        client_clock = GstNet.NetClientClock.new('clock', self.host, self.clock_port, self.base_time)
+            client_clock = GstNet.NetClientClock.new('clock', self.master.host, self.clock_port, self.base_time)
         
         time.sleep(2.0) # Wait for the clock to stabilise
 
         self.playbin.use_clock(client_clock)
-        self.playbin.set_base_time(self.base_time)
-        self.playbin.set_latency (0.1);   
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
+        self.playbin.set_base_time(self.base_time)
+        #self.playbin.set_latency (0.1);   
+        
  
         # wait until things stop
         bus =  self.playbin.get_bus()
@@ -249,8 +255,9 @@ if __name__ == '__main__':
 	    master.track = filepath
             master.play()
 
-            slaves[0].track = filepath
-            slaves[0].play()
+            if len(slaves) > 0:
+                slaves[0].track = filepath
+                slaves[0].play()
 
         else:  # Controller
 
@@ -292,6 +299,3 @@ if __name__ == '__main__':
         #        ns.remove(name=register_name)
 
         sys.exit()
-    
-
-    
