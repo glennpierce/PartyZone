@@ -33,6 +33,9 @@ class Player(object):
         else:
             print("slave player started on host: %s" % (self.host,))
 
+        self.base_time = Gst.CLOCK_TIME_NONE
+        self.stop()
+
         if self.is_master:
             self.system_clock = Gst.SystemClock.obtain()
             time.sleep(2.0) # Wait for the clock to stabilise
@@ -42,10 +45,7 @@ class Player(object):
         else:
             # Check that master is playing or not
             if self.master.state() == Gst.State.PLAYING:
-                print "restart playing"
-
-        self.base_time = Gst.CLOCK_TIME_NONE
-        self.stop()
+                self.play()
 
     @property
     def name(self):
