@@ -39,6 +39,9 @@ class Player(object):
             self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.host, self.clock_port)
             if not self.clock_provider:
                 print("No clock_provider set ?")
+        else:
+            # Check that master is playing or not
+            print(self.master.state)
 
         self.base_time = Gst.CLOCK_TIME_NONE
         self.stop()
