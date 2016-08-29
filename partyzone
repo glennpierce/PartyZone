@@ -45,6 +45,7 @@ class Player(object):
         else:
             # Check that master is playing or not
             if self.master.state() == Gst.State.PLAYING:
+                self.track = self.master.track
                 self.play()
 
     @property
