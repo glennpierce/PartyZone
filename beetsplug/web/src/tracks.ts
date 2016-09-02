@@ -10,7 +10,9 @@ export class Tracks {
   pageTracks : Array<ITrack> = [];
   activePage : number = 1;
   numberOfPages : number = 1;
+  showFirstLastPages : boolean = false;
   tracksPerPage : number = 25;
+  visiblePageLinks : number = 16;
   searchText : string = "";
 
   constructor(private allplay: AllPlay, private router: Router) {
