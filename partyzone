@@ -18,8 +18,11 @@ from socket import gethostname
 @Pyro4.expose
 class Player(object):
 
-    def __init__(self, port, is_master=False, master_ip_address="127.0.0.1"):
-        self._name = gethostname()
+    def __init__(self, port, is_master=False, master_ip_address="127.0.0.1", friendly_name=None):
+        if friendly_name:
+            self._name = friendly_name
+        else:
+            self._name = gethostname()
         self.port = int(port)
         self.is_master = is_master
         self._track_uri = None
@@ -137,11 +140,17 @@ if __name__ == '__main__':
 
     parser.add_argument('--host', type=str, help="Host ip you wish to bind to")
 
+    parser.add_argument('--name', type=str, dest='friendly_name', default='5342',
+            help='friendly name for salve or master')
+
     args = parser.parse_args()
 
     Gst.init(sys.argv)
 
     register_name = None
+
+
+#friendly_name
 
     try:
 
