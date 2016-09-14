@@ -1,12 +1,10 @@
 [Unit]
-Requires=pyro4-nameserver.service
-After=pyro4-nameserver.service
 Description=Partyzone upstairs hall slave player
 
 [Service]
 Type=simple
 Environment=GI_TYPELIB_PATH=/usr/local/lib/girepository-1.0
-ExecStart=/usr/bin/partyzone --playertype slave --name "Kitchen" --card hw:4,0 --host 127.0.0.1
+ExecStart=/opt/PartyZone/partyzone --playertype slave --name "Kitchen" --card hw:0,0
 
 [Install]
 WantedBy=multi-user.target
