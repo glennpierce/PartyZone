@@ -14,3 +14,7 @@ export GST_LIBS=/usr/local/lib/
 libgirepository1.0-dev
 
 export GI_TYPELIB_PATH=/usr/local/lib/girepository-1.0/
+
+
+Running multiple slaves on one mache with multiple soundcards
+./partyzone --playertype slave --name kitchen --card hw:2,0
