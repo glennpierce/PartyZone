@@ -36,14 +36,11 @@ class Player(object):
             print("master player started on host: %s" % (self.host,))
         else:
             print("slave player started on host: %s" % (self.host,))
+            print(self.master.name)
 
         self.base_time = Gst.CLOCK_TIME_NONE
         self.stop()
 
-             #Device
-#Device_1
-#Device_2
-#self.sink = gst.element_factory_make("alsasink", "sink")
         if self._card:
             print("setting card to " + self._card)
             alsa_sink = Gst.ElementFactory.make("alsasink", "alsasink")
@@ -160,6 +157,7 @@ class Player(object):
 
 if __name__ == '__main__':
 
+    # default host name
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(('google.com', 0))
     default_host = s.getsockname()[0]
@@ -183,6 +181,8 @@ if __name__ == '__main__':
     parser.set_defaults(testsync=False)
 
     args = parser.parse_args()
+
+    print("host: " + str(args.host))
 
     Gst.init(sys.argv)
 
@@ -227,9 +227,32 @@ if __name__ == '__main__':
             if not args.host:
                 raise AttributeError("host parameter required")
 
-            ns = Pyro4.naming.locateNS()
-            # Get master ip address
-            master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
+            ns = None
+
+            while True:
+                try:
+                    ns = Pyro4.naming.locateNS()
+                    break
+                except Pyro4.errors.NamingError:
+                    print("Can't find Pyro nameserver!")
+                except ex:
+                    print(str(ex))
+                    sys.exit(1)
+                time.sleep(5)
+
+            master_uri = None
+
+            while True:
+                try:
+                    master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
+                    break
+                except IndexError:           
+                    print("Can't find master player")
+                except ex:
+                    print(str(ex))
+                    sys.exit(1)
+                time.sleep(5)          
+
             master = Pyro4.Proxy(master_uri)
             register_name = "partyzone.slave (%s)" % gethostname()
             player = Player(args.host, args.clock_port, master, name=default_friendly_name, card=args.card)
