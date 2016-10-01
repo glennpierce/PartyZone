@@ -16,6 +16,7 @@ import socket
 from gi.repository import GObject, Gst, GstNet
 from socket import gethostname
 
+
 @Pyro4.expose
 class Player(object):
 
@@ -30,6 +31,7 @@ class Player(object):
         self.is_master = False if master else True
         self._track_uri = None
         self._card = card
+        self._controller = None
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
 
         if self.is_master:
@@ -82,13 +84,14 @@ class Player(object):
     def on_message(self, bus, message):
         t = message.type
         if t == Gst.MessageType.EOS:
-            print("here1")
             self.playbin.set_state(Gst.State.NULL)
         elif t == Gst.MessageType.ERROR:
-            print("here2")
             self.playbin.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
             print("Error: %s" % err, debug)
+
+    def set_callback(self, callback):
+        self._callback = callback
 
     def get_basetime(self):
         return self.base_time
@@ -101,7 +104,7 @@ class Player(object):
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
 
-    def play(self):
+    def play(self, callback):
 
         if self.is_master:
             #print("connecting to net clock %s:%s" % (self.host, self.clock_port))
@@ -130,7 +133,9 @@ class Player(object):
        
         print("setting basetime to %s" % (self.base_time,))
         self.playbin.set_state(Gst.State.PLAYING)
-       
+
+        if self._controller:
+             self._callback.play_done()    # invoke the callback object
 
     def install_pyro_event_callback(self, daemon):
         """
@@ -152,8 +157,6 @@ class Player(object):
 
         GObject.timeout_add(20, pyro_event)
 
-#alsa_card0.set_property("device", "cardname0")
-#alsa_card0.set_property("device", "cardname0")
 
 if __name__ == '__main__':
 
@@ -180,8 +183,11 @@ if __name__ == '__main__':
     parser.add_argument('--test-sync', dest='testsync', action='store_true', help="Play test file to check sync")
     parser.set_defaults(testsync=False)
 
+    # parser.add_argument('-r', '--recursive-play', dest='recursive', action=readable_dir, default=None, help="Directory of items to recursively play")
+
     args = parser.parse_args()
 
+    print("Playing dir: " + args.recursive)
     print("host: " + str(args.host))
 
     Gst.init(sys.argv)
@@ -278,10 +284,41 @@ if __name__ == '__main__':
             player.install_pyro_event_callback(daemon)
             GObject.MainLoop().run()
 
+        # elif args.recursive:
 
-	elif args.testsync:
+        #     # Recursive directory player
+        #     with Pyro4.locateNS() as ns:
+        #         players = ns.list(prefix="partyzone")
+        #         master = None
+        #         slaves = []
+        #         for name, uri in players.items():
+        #             if "partyzone.masterplayer" in name:
+        #                 master = Pyro4.Proxy(uri)
+        #             else:
+        #                 slaves.append(Pyro4.Proxy(uri))
 
-	    # Example controller
+        #         print("master: " + str(master))
+        #         print("slaves: " + str(slaves))
+
+        #         if not master:
+        #             print("No master player found")
+        #             sys.exit(0)
+
+        #     print("Playing dir: " + args.recursive)
+            
+        #     controller = Controller(master, slaves, args.recursive)
+            
+        #     with Pyro4.core.Daemon() as daemon:
+        #         daemon.register(controller)
+            
+        #         # add a Pyro event callback to the gui's mainloop
+        #         #controller.install_pyro_event_callback(daemon)
+        #         #GObject.MainLoop().run()
+        #         daemon.requestLoop()
+
+        elif args.testsync:
+
+            # Example controller
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
                 master = None
@@ -299,7 +336,7 @@ if __name__ == '__main__':
                     sys.exit(0)
 
             path = os.path.dirname(os.path.realpath(__file__))
-	        #filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
+            #filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
             filepath = 'file:///home/glenn/test.mp3'
 
             master.track = filepath
