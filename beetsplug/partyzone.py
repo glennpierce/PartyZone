@@ -55,12 +55,16 @@ class MainHandler(BaseHandler):
 #     ])
 
 
+class PlayerCallback(object):
+
+    @Pyro4.callback
+    def play_done(self):
+        print("callback: play done")
+
 # Plugin hook.
 class PartyZoneWebPlugin(BeetsPlugin):
 
-    class PlayerCallback(object):
-        def play_done(self):
-            print("callback: play done")
+    
 
     class Controller(object):
         def __init__(self, directory = None):
@@ -72,7 +76,13 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     if "partyzone.masterplayer" in name:
                         self.master = Pyro4.Proxy(uri)
                     else:
-                        self.slaves.append(Pyro4.Proxy(uri))
+                        try:
+                            # If we can't call name slave is not there
+                            if slave.name is not None:
+                                self.slaves.append(Pyro4.Proxy(uri))
+                        except:
+                            pass
+
                 print("master: " + str(self.master))
                 print("slaves: " + str(self.slaves))
 
@@ -102,9 +112,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
     def pyro_event(self):
         while True:
             # for as long as the pyro socket triggers, dispatch events
-            s, _, _ = select.select(daemon.sockets, [], [], 0.01)
+            s, _, _ = select.select(self.daemon.sockets, [], [], 0.01)
             if s:
-                daemon.events(s)
+                self.daemon.events(s)
             else:
                 # no more events, stop the loop, we'll get called again soon anyway
                 break
@@ -129,15 +139,25 @@ class PartyZoneWebPlugin(BeetsPlugin):
             # Need to convert Subview to str before casting to int
             app.listen(int(str(self.config['port'])), address=str(self.config['host']))
             app.controller = PartyZoneWebPlugin.Controller()
-            app.player_callback = PartyZoneWebPlugin.PlayerCallback()
-            app.controller.master.set_callback(app.player_callback)
+            #app.player_callback = PartyZoneWebPlugin.PlayerCallback()
+            app.player_callback = PlayerCallback()
+            #app.controller.master.set_callback(app.player_callback)
 
-            with Pyro4.core.Daemon() as daemon:
-                app.daemon = daemon
-                app.daemon.register(app.player_callback)
+                #daemon = Pyro4.core.Daemon(args.host)
+                # register the object in the daemon and let it get a new objectId
+                # also need to register in name server because it's not there yet.
+                #uri = daemon.register(player)
 
-                tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
-                tornado.ioloop.IOLoop.instance().start()
+            daemon=Pyro4.core.Daemon()
+            self.daemon = daemon
+            daemon.register(app.player_callback)
+
+            # with Pyro4.core.Daemon() as daemon:
+            #     app.daemon = daemon
+            #     daemon.register(app.player_callback)
+
+            tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
+            tornado.ioloop.IOLoop.instance().start()
 
         cmd.func = func
         return [cmd]

@@ -161,11 +161,18 @@ class Player(object):
 if __name__ == '__main__':
 
     # default host name
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(('google.com', 0))
-    default_host = s.getsockname()[0]
-    default_friendly_name = gethostname()
+    default_friendly_name = None
 
+    while True:  # Debian at least fails dns at startup with systemd. Even specifying after network
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(('google.com', 0))
+            default_host = s.getsockname()[0]
+            default_friendly_name = gethostname()
+            break
+        except:
+            time.sleep(5)
+            
     parser = argparse.ArgumentParser(description='Syncronise music accross machines.')
 
     parser.add_argument('--playertype', type=str, dest='playertype', default='controller',
