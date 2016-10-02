@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
@@ -7,12 +7,17 @@ import sys
 import gi
 import time
 import signal
+
 import select
-import Pyro4
 import argparse
 import os
 import os.path
+
+os.environ["PYRO_LOGFILE"] = "pyro.log"
+os.environ["PYRO_LOGLEVEL"] = "DEBUG"
+
 # import flask
+import Pyro4
 from beets.plugins import BeetsPlugin
 from beets.ui import Subcommand
 from beets import ui
@@ -89,20 +94,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 print("master: " + str(self.master))
                 print("slaves: " + str(self.slaves))
 
-                ################
-                filepath = 'file:///home/glenn/test.mp3'
-
-                self.master.track = filepath
-                self.master.play()
-
-                if len(self.slaves) > 0:
-                    try:
-                        self.slaves[0].track = filepath
-                        self.slaves[0].play()
-                    except Pyro4.errors.CommunicationError as ex:
-                        pass
-                #######################
-
             #files = self.get_files()
             #print(files)
 
@@ -114,10 +105,25 @@ class PartyZoneWebPlugin(BeetsPlugin):
             print("callback: play done")
 
         def play(self):
+
+            ################
+            filepath = 'file:///home/glenn/test.mp3'
+
+            self.master.track = filepath
             self.master.play()
 
-            for slave in self.slaves:
-                slave.play(master_basetime=master.get_basetime())
+            # if len(self.slaves) > 0:
+            #     try:
+            #         self.slaves[0].track = filepath
+            #         self.slaves[0].play()
+            #     except Pyro4.errors.CommunicationError as ex:
+            #         pass
+            #######################
+
+            # self.master.play()
+
+            # for slave in self.slaves:
+            #     slave.play(master_basetime=master.get_basetime())
 
     def __init__(self):
         super(PartyZoneWebPlugin, self).__init__()
@@ -175,6 +181,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
             # with Pyro4.core.Daemon() as daemon:
             #     app.daemon = daemon
             #     daemon.register(app.player_callback)
+
+
+            app.controller.play()
 
             tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
             tornado.ioloop.IOLoop.instance().start()

@@ -7,11 +7,15 @@ gi.require_version('GstNet', '1.0')
 import time
 import signal
 import select
-import Pyro4
 import argparse
 import os
+
+os.environ["PYRO_LOGFILE"] = "pyro.log"
+os.environ["PYRO_LOGLEVEL"] = "DEBUG"
+
 import os.path
 import socket
+import Pyro4
 
 from gi.repository import GObject, Gst, GstNet
 from socket import gethostname
