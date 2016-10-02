@@ -178,16 +178,33 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 #uri = daemon.register(player)
 
             daemon=Pyro4.core.Daemon()
-            self.daemon = daemon
+            #self.daemon = daemon
             
             app.player_callback = PlayerCallback()
-            uri = daemon.register(app.player_callback)
-            uri = uri.replace('localhost', self.config['host'])
-            app.controller.master.set_callback_uri(uri)
+            #uri = daemon.register(app.player_callback)
+            #uri = str(uri).replace('localhost', str(self.config['host']))
+     #       uri_string = "PYRO:partyzoneclient@" +  str(self.config['host']) + ":9090"
 
-            # with Pyro4.core.Daemon() as daemon:
-            #     app.daemon = daemon
-            #     daemon.register(app.player_callback)
+#PYRO:Pyro.NameServer@localhost:9090
+#
+# URI
+# This is what Pyro uses to identify every object. (similar to what a w
+# eb page URL is to point to the different documents on the web). 
+# Its string form is like this: "PYRO:"" + object name + "@"" + server name + port number. 
+#There are a few other forms it can take as well. You can write the protocol in lowercase too if you want ("pyro:"")
+# but it will automatically be #converted to uppercase internally. 
+#The class implementing Pyro uris is Pyro4.URI (shortcut for Pyro4.core.URI)
+
+
+           # print(uri_string)
+            
+
+            with Pyro4.core.Daemon(str(self.config['host'])) as daemon:
+                #uri = daemon.register(app.player_callback, uri_string)
+                #print(uri)
+                uri = daemon.register(app.player_callback)
+                app.controller.master.set_callback_uri(uri)
+                print(uri)
 
             tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
             tornado.ioloop.IOLoop.instance().start()
