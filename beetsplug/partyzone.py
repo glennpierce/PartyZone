@@ -78,8 +78,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     else:
                         try:
                             # If we can't call name slave is not there
-                            if slave.name is not None:
-                                self.slaves.append(Pyro4.Proxy(uri))
+                            s = Pyro4.Proxy(uri)
+                            if s.name is not None:
+                                self.slaves.append(s)
                         except:
                             pass
 
