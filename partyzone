@@ -86,6 +86,8 @@ class Player(object):
         if t == Gst.MessageType.EOS:
             self.playbin.set_state(Gst.State.NULL)
             print("dd")
+            print(self.is_master)
+            print(self._callback)
             if self.is_master and self._callback:
                 print("fffffff")
                 self._callback.play_done()    # invoke the callback object
@@ -97,6 +99,7 @@ class Player(object):
 
     def set_callback(self, callback):
         self._callback = callback
+        print("setting callback %s" % (self._callback,))
 
     def get_basetime(self):
         return self.base_time
