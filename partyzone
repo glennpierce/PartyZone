@@ -117,6 +117,7 @@ class Player(object):
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
 
+    @Pyro4.oneway
     def play(self):
 
         if self.is_master:

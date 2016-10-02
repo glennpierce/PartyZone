@@ -135,10 +135,11 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
     def pyro_event(self):
         while True:
-            
+            #print(self.daemon.sockets)
             # for as long as the pyro socket triggers, dispatch events
             s, _, _ = select.select(self.daemon.sockets, [], [], 0.01)
             if s:
+                print(s)
                 print("event")
                 self.daemon.events(s)
             else:
@@ -166,7 +167,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
                   ])
 
             # Need to convert Subview to str before casting to int
+            print("here1")
             app.listen(int(str(self.config['port'])), address=str(self.config['host']))
+            print("here2")
             app.controller = PartyZoneWebPlugin.Controller()
             #app.player_callback = PartyZoneWebPlugin.PlayerCallback()
             
@@ -177,37 +180,25 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 # also need to register in name server because it's not there yet.
                 #uri = daemon.register(player)
 
-            daemon=Pyro4.core.Daemon()
+            #daemon=Pyro4.core.Daemon()
             #self.daemon = daemon
             
             app.player_callback = PlayerCallback()
-            #uri = daemon.register(app.player_callback)
-            #uri = str(uri).replace('localhost', str(self.config['host']))
-     #       uri_string = "PYRO:partyzoneclient@" +  str(self.config['host']) + ":9090"
-
-#PYRO:Pyro.NameServer@localhost:9090
-#
-# URI
-# This is what Pyro uses to identify every object. (similar to what a w
-# eb page URL is to point to the different documents on the web). 
-# Its string form is like this: "PYRO:"" + object name + "@"" + server name + port number. 
-#There are a few other forms it can take as well. You can write the protocol in lowercase too if you want ("pyro:"")
-# but it will automatically be #converted to uppercase internally. 
-#The class implementing Pyro uris is Pyro4.URI (shortcut for Pyro4.core.URI)
-
-
-           # print(uri_string)
             
-
-            with Pyro4.core.Daemon(str(self.config['host'])) as daemon:
+            with Pyro4.core.Daemon(str(self.config['host']), port=8888) as daemon:
                 #uri = daemon.register(app.player_callback, uri_string)
                 #print(uri)
+                self.daemon = daemon
                 uri = daemon.register(app.player_callback)
                 app.controller.master.set_callback_uri(uri)
                 print(uri)
 
-            tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
-            tornado.ioloop.IOLoop.instance().start()
+                print("here4")
+
+                tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
+                tornado.ioloop.IOLoop.instance().start()
+
+                print("here5")
 
         cmd.func = func
         return [cmd]
