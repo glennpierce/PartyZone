@@ -64,8 +64,6 @@ class PlayerCallback(object):
 # Plugin hook.
 class PartyZoneWebPlugin(BeetsPlugin):
 
-    
-
     class Controller(object):
         def __init__(self, directory = None):
             with Pyro4.locateNS() as ns:
@@ -86,6 +84,20 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
                 print("master: " + str(self.master))
                 print("slaves: " + str(self.slaves))
+
+                ################
+                filepath = 'file:///home/glenn/test.mp3'
+
+                self.master.track = filepath
+                self.master.play()
+
+                if len(self.slaves) > 0:
+                    try:
+                        self.slaves[0].track = filepath
+                        self.slaves[0].play()
+                    except Pyro4.errors.CommunicationError as ex:
+                        pass
+                #######################
 
             #files = self.get_files()
             #print(files)
