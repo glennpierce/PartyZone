@@ -101,9 +101,10 @@ class Player(object):
             err, debug = message.parse_error()
             print("Error: %s" % err, debug)
 
-    def set_callback(self, callback):
-        self._callback = callback
-        print("setting callback %s" % (self._callback,))
+    def set_callback_uri(self, callback_uri):
+        self._callback_uri = callback_uri
+        print("setting callback %s" % (self._callback_uri,))
+        self._callback = Pyro4.Proxy(self._callback_uri)
 
     def get_basetime(self):
         return self.base_time

@@ -51,8 +51,9 @@ class BaseHandler(tornado.web.RequestHandler):
 class MainHandler(BaseHandler):
     def get(self):
         print(self.application)
+        self.application.controller.play()
         self.write("Hello, world")
-
+        
 
 # def make_app():
 #     return tornado.web.Application([
@@ -62,11 +63,11 @@ class MainHandler(BaseHandler):
 @Pyro4.expose
 class PlayerCallback(object):
 
-    @Pyro4.callback
+    #@Pyro4.callback
     def play_started(self):
         print("callback: play started")
 
-    @Pyro4.callback
+    #@Pyro4.callback
     def play_done(self):
         print("callback: play done")
 
@@ -134,9 +135,11 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
     def pyro_event(self):
         while True:
+            
             # for as long as the pyro socket triggers, dispatch events
             s, _, _ = select.select(self.daemon.sockets, [], [], 0.01)
             if s:
+                print("event")
                 self.daemon.events(s)
             else:
                 # no more events, stop the loop, we'll get called again soon anyway
@@ -175,15 +178,12 @@ class PartyZoneWebPlugin(BeetsPlugin):
             self.daemon = daemon
             
             app.player_callback = PlayerCallback()
-            daemon.register(app.player_callback)
-            app.controller.master.set_callback(app.player_callback)
+            uri = daemon.register(app.player_callback)
+            app.controller.master.set_callback_uri(uri)
 
             # with Pyro4.core.Daemon() as daemon:
             #     app.daemon = daemon
             #     daemon.register(app.player_callback)
-
-
-            app.controller.play()
 
             tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
             tornado.ioloop.IOLoop.instance().start()
