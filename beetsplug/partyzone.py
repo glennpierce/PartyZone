@@ -54,8 +54,12 @@ class MainHandler(BaseHandler):
 #         (r"/", MainHandler),
 #     ])
 
-
+@Pyro4.expose
 class PlayerCallback(object):
+
+    @Pyro4.callback
+    def play_started(self):
+        print("callback: play started")
 
     @Pyro4.callback
     def play_done(self):
@@ -153,8 +157,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app.listen(int(str(self.config['port'])), address=str(self.config['host']))
             app.controller = PartyZoneWebPlugin.Controller()
             #app.player_callback = PartyZoneWebPlugin.PlayerCallback()
-            app.player_callback = PlayerCallback()
-            #app.controller.master.set_callback(app.player_callback)
+            
+            
 
                 #daemon = Pyro4.core.Daemon(args.host)
                 # register the object in the daemon and let it get a new objectId
@@ -163,7 +167,10 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             daemon=Pyro4.core.Daemon()
             self.daemon = daemon
+            
+            app.player_callback = PlayerCallback()
             daemon.register(app.player_callback)
+            app.controller.master.set_callback(app.player_callback)
 
             # with Pyro4.core.Daemon() as daemon:
             #     app.daemon = daemon

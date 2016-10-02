@@ -142,6 +142,10 @@ class Player(object):
         print("setting basetime to %s" % (self.base_time,))
         self.playbin.set_state(Gst.State.PLAYING)
 
+        if self.is_master and self._callback:
+            print("play started callback")
+            self._callback.play_started()    # invoke the callback object
+
     def install_pyro_event_callback(self, daemon):
         """
         Add a callback to the tkinter event loop that is invoked every so often.
