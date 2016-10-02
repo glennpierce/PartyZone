@@ -148,12 +148,9 @@ class Player(object):
         print("setting basetime to %s" % (self.base_time,))
         self.playbin.set_state(Gst.State.PLAYING)
 
-#self._callback = Pyro4.Proxy(self._callback_uri)
-
         if self.is_master and self._callback:
             print("play started callback %s" % (self._callback_uri,))
             Pyro4.Proxy(self._callback_uri).play_started()    # invoke the callback object
-            #self._callback.play_started()    # invoke the callback object
 
     def install_pyro_event_callback(self, daemon):
         """

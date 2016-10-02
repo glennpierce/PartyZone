@@ -16,16 +16,11 @@ import os.path
 os.environ["PYRO_LOGFILE"] = "pyro.log"
 os.environ["PYRO_LOGLEVEL"] = "DEBUG"
 
-# import flask
 import Pyro4
 from beets.plugins import BeetsPlugin
 from beets.ui import Subcommand
 from beets import ui
 from beets import util
-# from flask import Flask, g, jsonify, request
-# from werkzeug.routing import BaseConverter, PathConverter
-# from socket import gethostname
-
 
 import tornado.ioloop
 import tornado.web
@@ -48,17 +43,34 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_status(204)
         self.finish()
 
+
 class MainHandler(BaseHandler):
     def get(self):
         print(self.application)
-        self.application.controller.play()
+        #self.application.controller.play()
         self.write("Hello, world")
         
+class TrackFileHandler(BaseHandler):
+    def get(self, param1):
+        item_id = param1
+        item = self.application.lib.get_item(item_id)
+        #print(vars(item))
+        #'format': u'MP3',
+        self.set_header('Content-type', 'audio/mpeg')
+        with open(item.path, 'rb') as f:
+            data = f.read()
+            self.write(data)
+        self.finish()
 
-# def make_app():
-#     return tornado.web.Application([
-#         (r"/", MainHandler),
-#     ])
+
+# @app.route('/trackfile/<int:item_id>')
+# def trackfile(item_id):
+#     item = g.lib.get_item(item_id)
+#     response = flask.send_file(item.path, as_attachment=False)
+#     response.headers['Content-Length'] = os.path.getsize(item.path)
+#     return response
+
+
 
 @Pyro4.expose
 class PlayerCallback(object):
@@ -160,45 +172,29 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             print(self.config['host'])
 
-            #app = make_app()
-
             app = tornado.web.Application([
                     (r"/", MainHandler),
-                  ])
 
-            # Need to convert Subview to str before casting to int
-            print("here1")
-            app.listen(int(str(self.config['port'])), address=str(self.config['host']))
-            print("here2")
+                    (r"/trackfile/([0-9]+)", TrackFileHandler)
+                ])
+
+            app.lib = lib
+            app.host = str(self.config['host'])
+            app.port = int(str(self.config['port'])) # Need to convert Subview to str before casting to int
+
+            app.listen(app.port, address=app.host)
             app.controller = PartyZoneWebPlugin.Controller()
-            #app.player_callback = PartyZoneWebPlugin.PlayerCallback()
-            
-            
-
-                #daemon = Pyro4.core.Daemon(args.host)
-                # register the object in the daemon and let it get a new objectId
-                # also need to register in name server because it's not there yet.
-                #uri = daemon.register(player)
-
-            #daemon=Pyro4.core.Daemon()
-            #self.daemon = daemon
             
             app.player_callback = PlayerCallback()
             
             with Pyro4.core.Daemon(str(self.config['host']), port=8888) as daemon:
-                #uri = daemon.register(app.player_callback, uri_string)
-                #print(uri)
                 self.daemon = daemon
                 uri = daemon.register(app.player_callback)
                 app.controller.master.set_callback_uri(uri)
                 print(uri)
 
-                print("here4")
-
                 tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
                 tornado.ioloop.IOLoop.instance().start()
-
-                print("here5")
 
         cmd.func = func
         return [cmd]
@@ -217,29 +213,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
 
 
-
-
-
-
-
-
-
-
-# Load default config and override config from an environment variable
-# app.config.update(dict(
-#     DATABASE=os.path.join(app.root_path, 'flaskr.db'),
-#     SECRET_KEY='development key',
-#     USERNAME='admin',
-#     PASSWORD='default'
-# ))
-# app.config.from_envvar('FLASKR_SETTINGS', silent=True)
-
-# @app.before_request
-# def before_request():
-#    g.lib = app.config['lib']
-#    g.host = app.config['host']
-#    g.port = app.config['port']
-
 # @app.after_request
 # def after_request(response):
 #   response.headers.add('Access-Control-Allow-Origin', '*')
@@ -251,12 +224,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
 # def index():
 #     return flask.render_template('index.html')
 
-# @app.route('/trackfile/<int:item_id>')
-# def trackfile(item_id):
-#     item = g.lib.get_item(item_id)
-#     response = flask.send_file(item.path, as_attachment=False)
-#     response.headers['Content-Length'] = os.path.getsize(item.path)
-#     return response
+
 
 # @app.route('/playtrack', methods= ['POST'])
 # def play():
