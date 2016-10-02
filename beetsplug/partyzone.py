@@ -7,7 +7,7 @@ import sys
 import gi
 import time
 import signal
-
+from socket import gethostname
 import select
 import argparse
 import os
@@ -146,6 +146,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 break
 
     def commands(self):
+
         cmd = ui.Subcommand('partyzone', help=u'start the partyzone Web interface')
         cmd.parser.add_option(u'-d', u'--debug', action='store_true',
                               default=False, help=u'debug mode')
@@ -155,6 +156,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             if args:
                 self.config['host'] = args.pop(0)
                 self.config['port'] = args.pop(0)
+
+            print(self.config['host'])
 
             #app = make_app()
 
@@ -179,6 +182,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             
             app.player_callback = PlayerCallback()
             uri = daemon.register(app.player_callback)
+            uri = uri.replace('localhost', self.config['host'])
             app.controller.master.set_callback_uri(uri)
 
             # with Pyro4.core.Daemon() as daemon:
