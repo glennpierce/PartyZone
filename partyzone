@@ -31,7 +31,7 @@ class Player(object):
         self.is_master = False if master else True
         self._track_uri = None
         self._card = card
-        self._controller = None
+        self._callback = None
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
 
         if self.is_master:
@@ -85,6 +85,11 @@ class Player(object):
         t = message.type
         if t == Gst.MessageType.EOS:
             self.playbin.set_state(Gst.State.NULL)
+            print("dd")
+            if self.is_master and self._callback:
+                print("fffffff")
+                self._callback.play_done()    # invoke the callback object
+
         elif t == Gst.MessageType.ERROR:
             self.playbin.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
@@ -133,9 +138,6 @@ class Player(object):
        
         print("setting basetime to %s" % (self.base_time,))
         self.playbin.set_state(Gst.State.PLAYING)
-
-        if self._controller:
-             self._callback.play_done()    # invoke the callback object
 
     def install_pyro_event_callback(self, daemon):
         """
