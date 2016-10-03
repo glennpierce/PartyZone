@@ -30,6 +30,7 @@ import tornado.web
 class BaseHandler(tornado.web.RequestHandler):
 
     def set_default_headers(self):
+        print("set_default_headers")
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
         self.set_header("Access-Control-Allow-Headers", "Content-Type,Authorization")
@@ -230,22 +231,21 @@ class PartyZoneWebPlugin(BeetsPlugin):
             args = ui.decargs(args)
             if args:
                 self.config['host'] = args.pop(0)
+                self.config['pyro_host'] = args.pop(0)
                 self.config['port'] = args.pop(0)
 
             print(self.config['host'])
 
             root = os.path.dirname(__file__)
 
-            print(root)
-
             app = tornado.web.Application([
                     #(r"/", MainHandler),
-                    (r"/playtrack/$", PlayFileHandler),
-                    (r"/tracks/$", GetTracksHandler),      
-                    (r"/stop/$", StopPlayHandler),
-                    (r"/adjust_volume/$", VolumeHandler),
-                    (r"/get_devices/$", GetDevicesHandler),
-                    (r"/update/$", UpdateTrackHandler),
+                    (r"/playtrack$", PlayFileHandler),
+                    (r"/tracks$", GetTracksHandler),      
+                    (r"/stop$", StopPlayHandler),
+                    (r"/adjust_volume$", VolumeHandler),
+                    (r"/get_devices$", GetDevicesHandler),
+                    (r"/update$", UpdateTrackHandler),
                     (r"/trackfile/([0-9]+)", TrackFileHandler),
                     (r"/(.*)", tornado.web.StaticFileHandler, {"path": root, "default_filename": "index.html"}),
                     
@@ -253,6 +253,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             app.lib = lib
             app.host = str(self.config['host'])
+            app.pyro_host = str(self.config['pyro_host'])
             app.port = int(str(self.config['port'])) # Need to convert Subview to str before casting to int
 
             app.listen(app.port, address=app.host)
