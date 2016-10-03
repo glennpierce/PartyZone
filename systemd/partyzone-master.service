@@ -6,7 +6,7 @@ Description=Partyzone master player
 [Service]
 Type=simple
 Environment=GI_TYPELIB_PATH=/usr/local/lib/girepository-1.0
-ExecStart=/opt/PartyZone/partyzone --playertype master --host 192.168.1.6
+ExecStart=/opt/PartyZone/partyzone --playertype master --name "Media Centre" --host 192.168.1.6
 
 [Install]
 WantedBy=multi-user.target

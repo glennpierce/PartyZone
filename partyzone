@@ -221,7 +221,7 @@ if __name__ == '__main__':
             if not args.host:   
                 raise AttributeError("host parameter required")
 
-            player = Player(args.host, args.clock_port, name=default_friendly_name, card=args.card)
+            player = Player(args.host, args.clock_port, name=args.name, card=args.card)
  
             register_name = "partyzone.masterplayer (%s)" % gethostname()
             ns = Pyro4.naming.locateNS()
@@ -281,7 +281,7 @@ if __name__ == '__main__':
 
             master = Pyro4.Proxy(master_uri)
             register_name = "partyzone.slave (%s)" % gethostname()
-            player = Player(args.host, args.clock_port, master, name=default_friendly_name, card=args.card)
+            player = Player(args.host, args.clock_port, master, name=args.name, card=args.card)
 
             try:
                 existing = ns.lookup(register_name)
