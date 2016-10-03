@@ -206,7 +206,7 @@ export class AllPlay {
  
     for (let i in devices) {
         let v = devices[i];
-        let speaker : Speaker = new Speaker(this.http, v[1], v[0]);
+        let speaker : Speaker = new Speaker(this.http, v[0], v[1]);
         this.speakers.push(speaker);
     }
 

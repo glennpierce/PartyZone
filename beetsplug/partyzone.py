@@ -115,7 +115,7 @@ class GetTracksHandler(BaseHandler):
 
 class GetDevicesHandler(BaseHandler):
     def get(self):
-        self.write({'devices': self.application.controller.get_devices()})
+        self.write({'devices': [(i.uri, i.proxy.name) for i in self.application.controller.get_devices()]})
         self.finish()
 
 
@@ -129,6 +129,17 @@ class UpdateTrackHandler(BaseHandler):
         self.write({'return': 'ok'})
         self.finish()
 
+
+class Device(object):
+    def __init__(self, uri, proxy=None):
+        self.uri = uri
+        if proxy:
+            self.proxy = proxy
+        else:
+            self.proxy = Pyro4.Proxy(self.uri)
+
+    def __repr__(self):
+        return self.proxy.name
 
 @Pyro4.expose
 class PlayerCallback(object):
@@ -152,13 +163,13 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 self.slaves = []
                 for name, uri in players.items():
                     if "partyzone.masterplayer" in name:
-                        self.master = Pyro4.Proxy(uri)
+                        self.master = Device(uri)
                     else:
                         try:
                             # If we can't call name slave is not there
                             s = Pyro4.Proxy(uri)
                             if s.name is not None:
-                                self.slaves.append(s)
+                                self.slaves.append(Device(uri, s))
                         except:
                             pass
 
@@ -184,19 +195,17 @@ class PartyZoneWebPlugin(BeetsPlugin):
             print("callback: play done")
 
         def play(self, uri):
-            self.master.track = uri
-            self.master.play()
-
-            self.master.play()
+            self.master.proxy.track = uri
+            self.master.proxy.play()
 
             for slave in self.slaves:
                 slave.play(master_basetime=master.get_basetime())
 
         def stop(self):
-            self.master.stop()
+            self.master.proxy.stop()
 
             for slave in self.slaves:
-                slave.stop()
+                slave.proxy.stop()
 
 
     def __init__(self):
@@ -262,7 +271,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             with Pyro4.core.Daemon(str(self.config['host']), port=8888) as daemon:
                 self.daemon = daemon
                 uri = daemon.register(app.player_callback)
-                app.controller.master.set_callback_uri(uri)
+                app.controller.master.proxy.set_callback_uri(uri)
                 print(uri)
 
                 tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()

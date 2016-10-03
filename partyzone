@@ -53,7 +53,6 @@ class Player(object):
             alsa_sink.set_property('device', self._card)
             self.playbin.set_property("audio-sink", alsa_sink)
 
-
         if self.is_master:
             self.system_clock = Gst.SystemClock.obtain()
             time.sleep(2.0) # Wait for the clock to stabilise
