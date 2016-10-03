@@ -12,6 +12,7 @@ import select
 import argparse
 import os
 import os.path
+import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
 os.environ["PYRO_LOGLEVEL"] = "DEBUG"
@@ -25,11 +26,13 @@ from beets import util
 import tornado.ioloop
 import tornado.web
 
+
 class BaseHandler(tornado.web.RequestHandler):
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
+        self.set_header("Access-Control-Allow-Headers", "Content-Type,Authorization")
         self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
 
     def post(self):
@@ -43,13 +46,19 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_status(204)
         self.finish()
 
+    def prepare(self):
+        if self.request.headers.get("Content-type", "").startswith("application/json"):
+            self.json_args = json.loads(self.request.body)
+        else:
+            self.json_args = None
 
-class MainHandler(BaseHandler):
-    def get(self):
-        print(self.application)
-        #self.application.controller.play()
-        self.write("Hello, world")
+# class MainHandler(BaseHandler):
+#     def get(self):
+#         print(self.application)
+#         #self.application.controller.play()
+#         self.write("Hello, world")
         
+
 class TrackFileHandler(BaseHandler):
     def get(self, param1):
         item_id = param1
@@ -63,13 +72,63 @@ class TrackFileHandler(BaseHandler):
         self.finish()
 
 
-# @app.route('/trackfile/<int:item_id>')
-# def trackfile(item_id):
-#     item = g.lib.get_item(item_id)
-#     response = flask.send_file(item.path, as_attachment=False)
-#     response.headers['Content-Length'] = os.path.getsize(item.path)
-#     return response
+class PlayFileHandler(BaseHandler):
+    def get(self):
+        data = self.json_args
+        print(data)
+        track_id = data['track_id']
+        uri = 'http://' + unicode(g.host) + ':' + unicode(g.port) + '/trackfile/' + unicode(track_id)
+        self.application.controller.play(uri)
+        self.write({'return': 'ok'})
+        self.finish()
 
+class StopPlayHandler(BaseHandler):
+    def get(self):
+        self.application.controller.stop()
+        self.write({'return': 'ok'})
+        self.finish()
+
+class VolumeHandler(BaseHandler):
+    def get(self):
+        self.application.controller.set_volume()  # TODO
+        self.write({'return': 'ok'})
+        self.finish()
+
+
+class GetTracksHandler(BaseHandler):
+    def get(self):
+        tracks = []
+        for item in self.application.lib.items():
+            tracks.append(
+                    {
+                    'id': item.id,
+                    'title': item.title,
+                    'path': item.path,
+                    'artist': item.artist,
+                    'album': item.album
+                    }
+                )
+
+        self.write({'items': tracks})
+        self.finish()
+
+
+class GetDevicesHandler(BaseHandler):
+    def get(self):
+        print("here")
+        self.write({'devices': self.application.controller.get_devices()})
+        self.finish()
+
+
+class UpdateTrackHandler(BaseHandler):
+    def get(self):
+        data = request.get_json()
+        item = data['item']
+        db_item = self.application.lib.get_item(item['id'])
+        db_item.update(item)
+        db_item.try_sync(True, False)
+        self.write({'return': 'ok'})
+        self.finish()
 
 
 @Pyro4.expose
@@ -110,33 +169,36 @@ class PartyZoneWebPlugin(BeetsPlugin):
             #files = self.get_files()
             #print(files)
 
+        def get_devices(self):
+            devices = [self.master]
+            devices.extend(self.slaves)
+            return devices
+
         def get_files(self):
             for root, dirs, files in os.walk(self._directory):
                 return [ file for file in files if file.endswith( ('.mp3', '.wav', '.ogg') ) ]
 
+        def set_volume(self):   # TODO
+            pass
+
         def play_done(self):
             print("callback: play done")
 
-        def play(self):
-
-            ################
-            filepath = 'file:///home/glenn/test.mp3'
-
-            self.master.track = filepath
+        def play(self, uri):
+            self.master.track = uri
             self.master.play()
 
-            # if len(self.slaves) > 0:
-            #     try:
-            #         self.slaves[0].track = filepath
-            #         self.slaves[0].play()
-            #     except Pyro4.errors.CommunicationError as ex:
-            #         pass
-            #######################
+            self.master.play()
 
-            # self.master.play()
+            for slave in self.slaves:
+                slave.play(master_basetime=master.get_basetime())
 
-            # for slave in self.slaves:
-            #     slave.play(master_basetime=master.get_basetime())
+        def stop(self):
+            self.master.stop()
+
+            for slave in self.slaves:
+                slave.stop()
+
 
     def __init__(self):
         super(PartyZoneWebPlugin, self).__init__()
@@ -172,11 +234,22 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             print(self.config['host'])
 
-            app = tornado.web.Application([
-                    (r"/", MainHandler),
+            root = os.path.dirname(__file__)
 
-                    (r"/trackfile/([0-9]+)", TrackFileHandler)
-                ])
+            print(root)
+
+            app = tornado.web.Application([
+                    #(r"/", MainHandler),
+                    (r"/playtrack/$", PlayFileHandler),
+                    (r"/tracks/$", GetTracksHandler),      
+                    (r"/stop/$", StopPlayHandler),
+                    (r"/adjust_volume/$", VolumeHandler),
+                    (r"/get_devices/$", GetDevicesHandler),
+                    (r"/update/$", UpdateTrackHandler),
+                    (r"/trackfile/([0-9]+)", TrackFileHandler),
+                    (r"/(.*)", tornado.web.StaticFileHandler, {"path": root, "default_filename": "index.html"}),
+                    
+                ], debug=True)
 
             app.lib = lib
             app.host = str(self.config['host'])
@@ -202,216 +275,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-# @app.after_request
-# def after_request(response):
-#   response.headers.add('Access-Control-Allow-Origin', '*')
-#   response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-#   response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
-#   return response
-
-# @app.route('/')
-# def index():
-#     return flask.render_template('index.html')
-
-
-
-# @app.route('/playtrack', methods= ['POST'])
-# def play():
-
-#     data = request.get_json()
-
-#     print(data)
-
-#     track_id = data['track_id']
-#     uri = 'http://' + unicode(g.host) + ':' + unicode(g.port) + '/trackfile/' + unicode(track_id)
-
-#     print(uri)
-
-#     #master.track = uri
-#     #master.play()
-
-#     print(slaves)
-
-#     print(master.get_basetime())
-
-#     slaves[0].track = uri
-#     slaves[0].play(master_basetime=master.get_basetime())
-
-#     slaves[1].track = uri
-#     slaves[1].play(master_basetime=master.get_basetime())
-
-#              #   time.sleep(10)
-#              #   slaves[0].stop()
-
-# #                 #master_player = Pyro4.Proxy("PYRONAME:partyzone.masterplayer")
-# #                 # Set the file uri to play
-# #                 #master_player.set_track(args.filepath)
-#     return jsonify({'return': 'ok'})
-
-# @app.route('/stop')
-# def stop():
-#     master.stop()
-#     slaves[0].stop()
-#     return jsonify({'return': 'ok'})
-
-# @app.route('/get_devices', methods=['GET'])
-# def get_devices():
-#     players = ns.list(prefix="partyzone").items()
-#     return jsonify({'devices': players})
-
-
-# # @app.route('/create_zone', methods= ['POST'])
-# # def create_zone():
-# #     data = request.get_json()
-# #     devices = data.get('selected_devices', [])
-# #     allplayerController.CreateZone(devices)
-# #     return jsonify({'return': 'ok'})
-
-
-# # @app.route('/play', methods= ['POST'])
-# # def play():
-# #     data = request.get_json()
-# #     allplayerController.SetQueue(data['queue'])
-# #     player = allplayerController.GetPlayer()
-# #     state, position = player.GetPlayingState()
-# #     if state == "paused":
-# #         player.Resume()
-# #     else:
-# #         allplayerController.PlayQueue()
-# #     return jsonify({'return': 'ok'})
-
-
-# # @app.route('/adjust_volume', methods=['POST'])
-# # def adjust_volume():
-# #     data = request.get_json()
-# #     device_id = data.get('device_id', None)
-# #     volume = data.get('volume')
-# #     allplayerController.SetVolume(device_id, volume)
-# #     return jsonify({'return': 'ok'})
-
-
-
-
-
-# # @app.route('/pause')
-# # def pause():
-# #     player = allplayerController.GetPlayer()
-# #     state, position = player.GetPlayingState()
-# #     if state.lower() == "paused":
-# #         player.Resume()
-# #     else:
-# #         player.Pause()
-# #     return jsonify({'return': 'ok'})
-
-
-# @app.route('/update', methods= ['POST'])
-# def update():
-#     data = request.get_json()
-#     item = data['item']
-#     db_item = g.lib.get_item(item['id'])
-#     db_item.update(item)
-#     db_item.try_sync(True, False)
-
-#     return jsonify({'return': 'ok'})
-
-
-# @app.route('/tracks/')
-# def tracks():
-#     tracks = []
-#     for item in g.lib.items():
-#         tracks.append(
-#                 {
-#                    'id': item.id,
-#                    'title': item.title,
-#                    'path': item.path,
-#                    'artist': item.artist,
-#                    'album': item.album
-#                 }
-#             )
-
-#     return jsonify({'items': tracks})  # g.lib.items()
-
-
-# # @app.route('/showtracks.html')
-# # def showtracks():
-# #     return flask.render_template('showtracks.html')
-
-
-# # @app.route('/showqueue.html')
-# # def showqueue():
-# #     return flask.render_template('showqueue.html')
-
-
-# # @app.route('/trackfile/<int:item_id>')
-# # def trackfile(item_id):
-# #     item = g.lib.get_item(item_id)
-# #     response = flask.send_file(item.path, as_attachment=False)
-# #     response.headers['Content-Length'] = os.path.getsize(item.path)
-# #     return response
-
-
-# # @app.route('/track.html')
-# # def track():
-# #     return flask.render_template('track.html')
-
-
-# # @app.route('/queuetrack.html')
-# # def queuetrack():
-# #     return flask.render_template('queuetrack.html')
-
-
-# # @app.route('/')
-# # def home():
-# #     return flask.render_template('index.html')
-
-
-# # @app.route('/showmetadata.html')
-# # def showmetadata():
-# #     return flask.render_template('showmetadata.html')
-
-
-# # Plugin hook.
-# class PartyZoneWebPlugin(BeetsPlugin):
-#     def __init__(self):
-#         super(PartyZoneWebPlugin, self).__init__()
-#         self.config.add({
-#             'host': u'127.0.0.1',
-#             'port': 5000,
-#         })
-
-#     def commands(self):
-#         cmd = ui.Subcommand('partyzone', help=u'start the partyzone Web interface')
-#         cmd.parser.add_option(u'-d', u'--debug', action='store_true',
-#                               default=False, help=u'debug mode')
-
-#         def func(lib, opts, args):
-#             args = ui.decargs(args)
-#             if args:
-#                 self.config['host'] = args.pop(0)
-#             if args:
-#                 self.config['port'] = int(args.pop(0))
-
-#             app.config['lib'] = lib
-#             app.config['host'] = self.config['host']
-#             app.config['port'] = self.config['port']
-
-#             # Start the web application.
-#             app.run(host='0.0.0.0',
-#                     port=self.config['port'].get(int),
-#                     debug=opts.debug, threaded=True)
-#         cmd.func = func
-#         return [cmd]
 
 
 # class readable_dir(argparse.Action):
