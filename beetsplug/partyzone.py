@@ -30,7 +30,6 @@ import tornado.web
 class BaseHandler(tornado.web.RequestHandler):
 
     def set_default_headers(self):
-        print("set_default_headers")
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
         self.set_header("Access-Control-Allow-Headers", "Content-Type,Authorization")
@@ -74,7 +73,7 @@ class TrackFileHandler(BaseHandler):
 
 
 class PlayFileHandler(BaseHandler):
-    def get(self):
+    def post(self):
         data = self.json_args
         print(data)
         track_id = data['track_id']
@@ -116,13 +115,12 @@ class GetTracksHandler(BaseHandler):
 
 class GetDevicesHandler(BaseHandler):
     def get(self):
-        print("here")
         self.write({'devices': self.application.controller.get_devices()})
         self.finish()
 
 
 class UpdateTrackHandler(BaseHandler):
-    def get(self):
+    def post(self):
         data = request.get_json()
         item = data['item']
         db_item = self.application.lib.get_item(item['id'])
@@ -272,64 +270,3 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
         cmd.func = func
         return [cmd]
-
-
-
-
-
-
-# class readable_dir(argparse.Action):
-#     def __call__(self,parser, namespace, values, option_string=None):
-#         prospective_dir=values
-#         if not os.path.isdir(prospective_dir):
-#             raise argparse.ArgumentTypeError("readable_dir:{0} is not a valid path".format(prospective_dir))
-#         if os.access(prospective_dir, os.R_OK):
-#             setattr(namespace,self.dest,prospective_dir)
-#         else:
-#             raise argparse.ArgumentTypeError("readable_dir:{0} is not a readable dir".format(prospective_dir))
-
-
-# if __name__ == '__main__':
-
-#     # This plays music in a specified directory
-
-#     parser = argparse.ArgumentParser(description='Syncronise music accross machines.')
-
-#     parser.add_argument('-r', '--recursive-play', dest='recursive', action=readable_dir, default=None, help="Directory of items to recursively play")
-
-#     args = parser.parse_args()
-
-#     print("Playing dir: " + args.recursive)
-#     print("host: " + str(args.host))
-
-#     if args.recursive:
-
-#         # Recursive directory player
-#         with Pyro4.locateNS() as ns:
-#             players = ns.list(prefix="partyzone")
-#             master = None
-#             slaves = []
-#             for name, uri in players.items():
-#                 if "partyzone.masterplayer" in name:
-#                     master = Pyro4.Proxy(uri)
-#                 else:
-#                     slaves.append(Pyro4.Proxy(uri))
-
-#             print("master: " + str(master))
-#             print("slaves: " + str(slaves))
-
-#             if not master:
-#                 print("No master player found")
-#                 sys.exit(0)
-
-#         print("Playing dir: " + args.recursive)
-        
-#         controller = Controller(master, slaves, args.recursive)
-        
-#         with Pyro4.core.Daemon() as daemon:
-#             daemon.register(controller)
-        
-#             # add a Pyro event callback to the gui's mainloop
-#             #controller.install_pyro_event_callback(daemon)
-#             #GObject.MainLoop().run()
-#             daemon.requestLoop()
