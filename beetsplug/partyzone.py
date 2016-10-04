@@ -211,12 +211,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 if active:
                     print("setting master volume to 1.0")
                     self.master.proxy.set_volume(1.0)
-                    print("here2")
-                    
                 else:
                     print("setting master volume to 0.0")
                     self.master.proxy.set_volume(0.0)
-                    print("here2")
                     if not (x for x in self.slaves if x.active == True):
                         self.master.proxy.stop()  # No active slaves. So may as well stop master playing
                 return
