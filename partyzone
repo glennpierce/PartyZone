@@ -88,17 +88,16 @@ class Player(object):
         t = message.type
         if t == Gst.MessageType.EOS:
             self.playbin.set_state(Gst.State.NULL)
-            print("dd")
-            print(self.is_master)
-            print(self._callback)
             if self.is_master and self._callback:
-                print("fffffff")
                 self._callback.play_done()    # invoke the callback object
 
         elif t == Gst.MessageType.ERROR:
             self.playbin.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
             print("Error: %s" % err, debug)
+
+    def set_volume(self, vol):
+        self.playbin.set_property('volume', vol)
 
     def set_callback_uri(self, callback_uri):
         self._callback_uri = callback_uri

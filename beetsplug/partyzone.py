@@ -71,13 +71,34 @@ class TrackFileHandler(BaseHandler):
             self.write(data)
         self.finish()
 
+class SetPlayersActiveHandler(BaseHandler):
+    def post(self):
+        data = self.json_args
+        print(data)
+        #uris = [str(d) for d in data['devices']]
+        
+        #print(uris)
+
+#{u'devices': [{u'selected': True, u'id': u'PYRO:obj_9028e59851cf4af5b4206363e3c8a2b4@192.168.1.6:39946'}, 
+#              {u'selected': True, u'id': u'PYRO:obj_524ad7477ca74bd8a5bdeac0c3f6e989@192.168.1.128:36172'}]}
+#{u'devices': [{u'selected': True, u'id': u'PYRO:obj_e650cbd7dfd34570ad2c12134c5b2d2f@192.168.1.6:50994'}]}
+        for device in data['devices']:
+            self.application.controller.set_device_active(device['id'], device['selected'])
+
+        #for device in self.application.controller.get_devices():
+        #    #print(device.uri)
+        #    #active = device.uri in uris
+        #    print(active)
+        #    self.application.controller.set_device_active(device.uri in uris, device.url)
+
+        self.write({'return': 'ok'})
+        self.finish()
 
 class PlayFileHandler(BaseHandler):
     def post(self):
         data = self.json_args
-        print(data)
         track_id = data['track_id']
-        uri = 'http://' + unicode(g.host) + ':' + unicode(g.port) + '/trackfile/' + unicode(track_id)
+        uri = 'http://' + unicode(self.application.host) + ':' + unicode(self.application.port) + '/trackfile/' + unicode(track_id)
         self.application.controller.play(uri)
         self.write({'return': 'ok'})
         self.finish()
@@ -93,7 +114,6 @@ class VolumeHandler(BaseHandler):
         self.application.controller.set_volume()  # TODO
         self.write({'return': 'ok'})
         self.finish()
-
 
 class GetTracksHandler(BaseHandler):
     def get(self):
@@ -132,6 +152,7 @@ class UpdateTrackHandler(BaseHandler):
 
 class Device(object):
     def __init__(self, uri, proxy=None):
+        self.active = True
         self.uri = uri
         if proxy:
             self.proxy = proxy
@@ -179,6 +200,33 @@ class PartyZoneWebPlugin(BeetsPlugin):
             #files = self.get_files()
             #print(files)
 
+        def set_device_active(self, uri, active):
+            # We can't not send / control master as it sends signals back after song has played etc.
+            # We could send signals from any player I guess and let the contoller decide who to listen
+            # to but it i easier to set master volume to 0. My media is on the machine with master and also this
+            # controller so its not like the master machine can be turned off. 
+            
+            if self.master.uri == uri:     
+                print("here")
+                if active:
+                    print("setting master volume to 1.0")
+                    self.master.proxy.set_volume(1.0)
+                    print("here2")
+                    
+                else:
+                    print("setting master volume to 0.0")
+                    self.master.proxy.set_volume(0.0)
+                    print("here2")
+                    if not (x for x in self.slaves if x.active == True):
+                        self.master.proxy.stop()  # No active slaves. So may as well stop master playing
+                return
+
+            device = next((x for x in self.slaves if x.uri == uri), None)
+            device.active = active
+            print("setting slave device %s active to %s" % (device.proxy.name, device.active))
+            device.proxy.stop()
+  
+
         def get_devices(self):
             devices = [self.master]
             devices.extend(self.slaves)
@@ -199,7 +247,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             self.master.proxy.play()
 
             for slave in self.slaves:
-                slave.play(master_basetime=master.get_basetime())
+                if slave.active:
+                    slave.play(master_basetime=master.get_basetime())
 
         def stop(self):
             self.master.proxy.stop()
@@ -238,7 +287,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
             args = ui.decargs(args)
             if args:
                 self.config['host'] = args.pop(0)
-                self.config['pyro_host'] = args.pop(0)
                 self.config['port'] = args.pop(0)
 
             print(self.config['host'])
@@ -247,6 +295,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             app = tornado.web.Application([
                     #(r"/", MainHandler),
+                    (r"/set_active_players$", SetPlayersActiveHandler),
                     (r"/playtrack$", PlayFileHandler),
                     (r"/tracks$", GetTracksHandler),      
                     (r"/stop$", StopPlayHandler),
@@ -260,15 +309,14 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             app.lib = lib
             app.host = str(self.config['host'])
-            app.pyro_host = str(self.config['pyro_host'])
             app.port = int(str(self.config['port'])) # Need to convert Subview to str before casting to int
 
-            app.listen(app.port, address=app.host)
+            app.listen(app.port, address="0.0.0.0")
             app.controller = PartyZoneWebPlugin.Controller()
             
             app.player_callback = PlayerCallback()
             
-            with Pyro4.core.Daemon(str(self.config['host']), port=8888) as daemon:
+            with Pyro4.core.Daemon(app.host, port=8888) as daemon:
                 self.daemon = daemon
                 uri = daemon.register(app.player_callback)
                 app.controller.master.proxy.set_callback_uri(uri)

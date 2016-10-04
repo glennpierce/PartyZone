@@ -223,21 +223,22 @@ export class AllPlay {
 
   async selectSpeakers() {
 
-      let speakerIds = Array<string>();
+      let speakerIds = Array<any>();
 
       for (let i in this.speakers) {
         let s = this.speakers[i];
-        if(s.selected) {
-          speakerIds.push(s.id);
-        }
+        speakerIds.push({'id': s.id, 'selected': s.selected});
       }
 
       localStorage.setItem("speakers", JSON.stringify(speakerIds));
 
-      let parameters = {'selected_devices': speakerIds};
+      let parameters = {'devices': speakerIds};
 
-      this.http.fetch('create_zone', {
+      this.http.fetch('set_active_players', {
         method: 'post',
+        headers: {
+            'Content-Type': 'application/json'
+        },
         body: JSON.stringify(parameters)
       });
 
