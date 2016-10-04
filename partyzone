@@ -200,6 +200,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--name', type=str, default=default_friendly_name, help="Friendly name for the player")
 
+    parser.add_argument('--play', type=str, default=None, help="Play file for testing")
+
     parser.add_argument('--test-sync', dest='testsync', action='store_true', help="Play test file to check sync")
     parser.set_defaults(testsync=False)
 
@@ -367,6 +369,18 @@ if __name__ == '__main__':
                     slaves[0].play()
                 except Pyro4.errors.CommunicationError as ex:
                     pass
+
+        elif args.play:
+
+            player = Player(args.host, args.clock_port, name=args.name, card=args.card)
+
+            filepath = 'file://' + args.play
+
+            print("playing " + filepath)
+            player.track = filepath
+            player.play()
+
+            GObject.MainLoop().run()
 
         else:  # Controller
 
