@@ -174,18 +174,9 @@ class Player(object):
 if __name__ == '__main__':
 
     # default host name
+    default_host = '127.0.0.1'
     default_friendly_name = None
 
-    while True:  # Debian at least fails dns at startup with systemd. Even specifying after network
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(('google.com', 0))
-            default_host = s.getsockname()[0]
-            default_friendly_name = gethostname()
-            break
-        except:
-            time.sleep(5)
-            
     parser = argparse.ArgumentParser(description='Syncronise music accross machines.')
 
     parser.add_argument('--playertype', type=str, dest='playertype', default='controller',
@@ -208,7 +199,18 @@ if __name__ == '__main__':
     # parser.add_argument('-r', '--recursive-play', dest='recursive', action=readable_dir, default=None, help="Directory of items to recursively play")
 
     args = parser.parse_args()
-
+   
+    if not args.play: 
+        while True:  # Debian at least fails dns at startup with systemd. Even specifying after network
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(('google.com', 0))
+                default_host = s.getsockname()[0]
+                default_friendly_name = gethostname()
+                break
+            except:
+                time.sleep(5)
+            
     print("host: " + str(args.host))
 
     Gst.init(sys.argv)
