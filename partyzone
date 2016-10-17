@@ -182,10 +182,12 @@ if __name__ == '__main__':
     parser.add_argument('--playertype', type=str, dest='playertype', default='controller',
         help='player type. master or slave (default slave)')
     
-    parser.add_argument('--port', type=int, dest='clock_port', default='5342',
+    parser.add_argument('--clock-port', type=int, dest='clock_port', default='5342',
         help='port used for the network clock')
 
     parser.add_argument('--host', type=str, default=default_host, help="Host ip you wish to bind to")
+
+    parser.add_argument('--pyro-port', dest='pyro_port', type=int, default=6564, help="Pyro port you wish to bind to")
 
     parser.add_argument('--card', type=str, default=None, help="Alsa card to use")
 
@@ -226,7 +228,7 @@ if __name__ == '__main__':
 
             player = Player(args.host, args.clock_port, name=args.name, card=args.card)
  
-            register_name = "partyzone.masterplayer (%s)" % gethostname()
+            register_name = "partyzone.masterplayer (%s)" % args.name
             ns = Pyro4.naming.locateNS()
 
             try:
@@ -283,7 +285,7 @@ if __name__ == '__main__':
                 time.sleep(5)          
 
             master = Pyro4.Proxy(master_uri)
-            register_name = "partyzone.slave (%s)" % gethostname()
+            register_name = "partyzone.slave (%s)" % args.name
             player = Player(args.host, args.clock_port, master, name=args.name, card=args.card)
 
             try:
@@ -296,7 +298,7 @@ if __name__ == '__main__':
                 daemon.register(player, objectId=existing.object)
             except Pyro4.errors.NamingError:
                 # just start a new daemon on a random port
-                daemon = Pyro4.core.Daemon(args.host)
+                daemon = Pyro4.core.Daemon(host=args.host, port=args.pyro_port)
                 # register the object in the daemon and let it get a new objectId
                 # also need to register in name server because it's not there yet.
                 uri = daemon.register(player)
