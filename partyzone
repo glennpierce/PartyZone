@@ -116,6 +116,10 @@ class Player(object):
         self.playbin.set_state(Gst.State.NULL)
 
     @Pyro4.oneway
+    def test(self):
+        print("oneway test call")
+
+    @Pyro4.oneway
     def play(self):
 
         if self.is_master:
@@ -404,6 +408,7 @@ if __name__ == '__main__':
                 for p in player_objects:
                     try:
                         print(p.name)
+                        p.test()
                         print("Sleeping 1 second")
                         time.sleep(1)
                     except Pyro4.errors.ConnectionClosedError:     # or possibly even ProtocolError

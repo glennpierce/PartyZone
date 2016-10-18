@@ -161,6 +161,7 @@ class Device(object):
     def __init__(self, uri, proxy=None):
         self.active = True
         self.uri = uri
+        self.active = False
         if proxy:
             self.proxy = proxy
         else:
@@ -247,16 +248,20 @@ class PartyZoneWebPlugin(BeetsPlugin):
             print("callback: play done")
 
         def play(self, uri):
-            print("ffffffffffffffffffffff")
             print(str(self.master))
             #print("setting track to master " + self.master)
             self.master.proxy.track = uri
             print(uri)
             self.master.proxy.play()
 
+            print("playing slaves")
+            print(str(self.slaves))
             for slave in self.slaves:
+                print(slave.proxy.name)
                 if slave.active:
-                    slave.play(master_basetime=master.get_basetime())
+                    print("Maeby")
+                    slave.proxy.play(master_basetime=master.get_basetime())
+                    print("hmm")
 
         def stop(self):
             self.master.proxy.stop()
