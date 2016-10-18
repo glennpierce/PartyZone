@@ -4,6 +4,7 @@ from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
 import sys
+import socket
 import gi
 import time
 import signal
@@ -62,8 +63,10 @@ class BaseHandler(tornado.web.RequestHandler):
 class TrackFileHandler(BaseHandler):
     def get(self, param1):
         item_id = param1
+        print(item_id)
+        print(self.application.lib)
         item = self.application.lib.get_item(item_id)
-        #print(vars(item))
+        print(item)
         #'format': u'MP3',
         self.set_header('Content-type', 'audio/mpeg')
         with open(item.path, 'rb') as f:
@@ -98,8 +101,12 @@ class PlayFileHandler(BaseHandler):
     def post(self):
         data = self.json_args
         track_id = data['track_id']
-        uri = 'http://' + unicode(self.application.host) + ':' + unicode(self.application.port) + '/trackfile/' + unicode(track_id)
+        uri = 'http://' + unicode(self.application.local_ip) + ':' + unicode(self.application.port) + '/trackfile/' + unicode(track_id)
+        print(uri)
+        print(self.application)
+        print(self.application.controller)
         self.application.controller.play(uri)
+        print("ff")
         self.write({'return': 'ok'})
         self.finish()
 
@@ -240,7 +247,11 @@ class PartyZoneWebPlugin(BeetsPlugin):
             print("callback: play done")
 
         def play(self, uri):
+            print("ffffffffffffffffffffff")
+            print(str(self.master))
+            #print("setting track to master " + self.master)
             self.master.proxy.track = uri
+            print(uri)
             self.master.proxy.play()
 
             for slave in self.slaves:
@@ -273,6 +284,17 @@ class PartyZoneWebPlugin(BeetsPlugin):
             else:
                 # no more events, stop the loop, we'll get called again soon anyway
                 break
+
+    def get_host(self):
+        while True:  # Debian at least fails dns at startup with systemd. Even specifying after network
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(('google.com', 0))
+                default_host = s.getsockname()[0]
+                return default_host
+            except Exception as ex:
+                print(str(ex))
+                time.sleep(5)
 
     def commands(self):
 
@@ -307,6 +329,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app.lib = lib
             app.host = str(self.config['host'])
             app.port = int(str(self.config['port'])) # Need to convert Subview to str before casting to int
+            app.local_ip = self.get_host()
 
             app.listen(app.port, address="0.0.0.0")
             app.controller = PartyZoneWebPlugin.Controller()
