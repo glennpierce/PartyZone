@@ -89,7 +89,7 @@ class Player(object):
         if t == Gst.MessageType.EOS:
             self.playbin.set_state(Gst.State.NULL)
             if self.is_master and self._callback:
-                self._callback.play_done()    # invoke the callback object
+                self._callback.play_done(self.name)    # invoke the callback object
 
         elif t == Gst.MessageType.ERROR:
             self.playbin.set_state(Gst.State.NULL)

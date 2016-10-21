@@ -63,10 +63,7 @@ class BaseHandler(tornado.web.RequestHandler):
 class TrackFileHandler(BaseHandler):
     def get(self, param1):
         item_id = param1
-        print(item_id)
-        print(self.application.lib)
         item = self.application.lib.get_item(item_id)
-        print(item)
         #'format': u'MP3',
         self.set_header('Content-type', 'audio/mpeg')
         with open(item.path, 'rb') as f:
@@ -102,11 +99,7 @@ class PlayFileHandler(BaseHandler):
         data = self.json_args
         track_id = data['track_id']
         uri = 'http://' + unicode(self.application.local_ip) + ':' + unicode(self.application.port) + '/trackfile/' + unicode(track_id)
-        print(uri)
-        print(self.application)
-        print(self.application.controller)
         self.application.controller.play(uri)
-        print("ff")
         self.write({'return': 'ok'})
         self.finish()
 
@@ -178,8 +171,8 @@ class PlayerCallback(object):
         print("callback: play started")
 
     #@Pyro4.callback
-    def play_done(self):
-        print("callback: play done")
+    def play_done(self, name):
+        print("callback: play done from %s" % (name,))
 
 # Plugin hook.
 class PartyZoneWebPlugin(BeetsPlugin):
@@ -205,6 +198,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 print("master: " + str(self.master))
                 print("slaves: " + str(self.slaves))
 
+                for d in self.slaves:
+                    d.proxy.test()
+
             #files = self.get_files()
             #print(files)
 
@@ -215,7 +211,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
             # controller so its not like the master machine can be turned off. 
             
             if self.master.uri == uri:     
-                print("here")
                 if active:
                     print("setting master volume to 1.0")
                     self.master.proxy.set_volume(1.0)
@@ -251,7 +246,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             print(str(self.master))
             #print("setting track to master " + self.master)
             self.master.proxy.track = uri
-            print(uri)
+            print("setting track to %s" % (uri,))
             self.master.proxy.play()
 
             print("playing slaves")
@@ -259,15 +254,14 @@ class PartyZoneWebPlugin(BeetsPlugin):
             for slave in self.slaves:
                 print(slave.proxy.name)
                 if slave.active:
-                    print("Maeby")
-                    slave.proxy.play(master_basetime=master.get_basetime())
-                    print("hmm")
+                    slave.proxy.track = uri
+                    slave.proxy.play()
 
         def stop(self):
-            self.master.proxy.stop()
-
             for slave in self.slaves:
                 slave.proxy.stop()
+
+            self.master.proxy.stop()
 
 
     def __init__(self):
@@ -340,8 +334,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app.controller = PartyZoneWebPlugin.Controller()
             
             app.player_callback = PlayerCallback()
-            
-            with Pyro4.core.Daemon(app.host, port=8888) as daemon:
+           
+            with Pyro4.core.Daemon(app.local_ip, port=8888) as daemon:
                 self.daemon = daemon
                 uri = daemon.register(app.player_callback)
                 app.controller.master.proxy.set_callback_uri(uri)

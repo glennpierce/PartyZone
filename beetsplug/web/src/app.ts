@@ -1,9 +1,16 @@
 import {Aurelia} from 'aurelia-framework';
 import {Router, RouterConfiguration} from 'aurelia-router';
+import {inject} from 'aurelia-framework';
+import {Speakers} from './speakers';
+//import {MdRange} from 'aurelia-materialize-bridge';
 
-
+@inject(Speakers)
 export class App {
   router: Router;
+
+  constructor(private speakers: Speakers) {
+      //speakers.setup();
+  }
 
   configureRouter(config: RouterConfiguration, router: Router) {
     config.title = 'AllPlay';

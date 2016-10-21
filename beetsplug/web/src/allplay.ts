@@ -203,7 +203,9 @@ export class AllPlay {
     const response = await this.http.fetch('get_devices');
     let result = await response.json();
     let devices = result['devices'];
- 
+    
+    this.speakers = [];
+
     for (let i in devices) {
         let v = devices[i];
         let speaker : Speaker = new Speaker(this.http, v[0], v[1]);
@@ -230,7 +232,7 @@ export class AllPlay {
         speakerIds.push({'id': s.id, 'selected': s.selected});
       }
 
-      localStorage.setItem("speakers", JSON.stringify(speakerIds));
+      //localStorage.setItem("speakers", JSON.stringify(speakerIds));
 
       let parameters = {'devices': speakerIds};
 
