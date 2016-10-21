@@ -96,9 +96,11 @@ class Player(object):
         elif t == Gst.MessageType.BUFFERING:
             percent = message.parse_buffering()
             print('\r ' + str(percent) + '% buffered', end='')
+            if int(percent) == 100:
+                print('\n')
             sys.stdout.flush()
-        elif t == Gst.MessageType.STATE_CHANGED:
-            print("State Changed")
+        #elif t == Gst.MessageType.STATE_CHANGED:
+        #    print("State Changed")
         elif t == Gst.MessageType.ERROR:
             self.playbin.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
@@ -120,6 +122,7 @@ class Player(object):
         print(state)
         return state
 
+    @Pyro4.oneway
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
         if self.is_master and self._callback:
