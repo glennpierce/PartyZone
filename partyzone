@@ -91,6 +91,11 @@ class Player(object):
             if self.is_master and self._callback:
                 self._callback.play_done(self.name)    # invoke the callback object
 
+        elif t == Gst.MessageType.BUFFERING:
+            percent = message.parse_buffering()
+            #gst_message_parse_buffering (message, &percent);
+            #print(str(percent))
+            print(os.path.getsize(file_name)/1024+'KB / '+size+' KB downloaded!', end='\r')
         elif t == Gst.MessageType.ERROR:
             self.playbin.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
