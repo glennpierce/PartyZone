@@ -95,8 +95,8 @@ class Player(object):
 
         elif t == Gst.MessageType.BUFFERING:
             percent = message.parse_buffering()
-            #gst_message_parse_buffering (message, &percent);
-            print(str(percent) + '% buffered', end='\r')
+            print('\r ' + str(percent) + '% buffered', end='')
+            sys.stdout.flush()
         elif t == Gst.MessageType.ERROR:
             self.playbin.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
