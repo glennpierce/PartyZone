@@ -261,6 +261,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             for slave in self.slaves:
                 slave.proxy.stop()
 
+            #print("calling master stop")
             self.master.proxy.stop()
 
 
