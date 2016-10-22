@@ -13,6 +13,7 @@ import select
 import argparse
 import os
 import os.path
+import requests
 import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
@@ -33,8 +34,17 @@ class BaseHandler(tornado.web.RequestHandler):
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
-        self.set_header("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        self.set_header("Access-Control-Allow-Headers", "Accept,Content-Type,Authorization")
         self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        #self.set_header("Content-Type", "application/json") 
+        #print("set_default_headers")
+
+    def write_error(self, status_code, **kwargs):
+        print ('In get_error_html. status_code: ' % (status_code,))
+        if status_code in [403, 404, 500, 503]:
+            self.write('Error %s' % status_code)
+        else:
+            self.write('BOOM!')
 
     def post(self):
         pass
@@ -48,10 +58,13 @@ class BaseHandler(tornado.web.RequestHandler):
         self.finish()
 
     def prepare(self):
-        if self.request.headers.get("Content-type", "").startswith("application/json"):
-            self.json_args = json.loads(self.request.body)
-        else:
-            self.json_args = None
+        self.json_args = None
+        if self.request.headers.get("Content-Type", "").startswith("application/json"):
+            try:
+                self.json_args = json.loads(self.request.body)
+            except Exception as ex:
+                print(str(ex))
+
 
 # class MainHandler(BaseHandler):
 #     def get(self):
@@ -71,25 +84,27 @@ class TrackFileHandler(BaseHandler):
             self.write(data)
         self.finish()
 
-class SetPlayersActiveHandler(BaseHandler):
+class RegisterCallbackHandler(BaseHandler):
     def post(self):
         data = self.json_args
-        print(data)
-        #uris = [str(d) for d in data['devices']]
-        
-        #print(uris)
+        if not data:
+            return
+        self.application.controller.callback_url = data['url']
+        print("registed callback %s" % (self.application.controller.callback_url,))
+        self.write({'return': 'ok'})
+        self.finish()
 
-#{u'devices': [{u'selected': True, u'id': u'PYRO:obj_9028e59851cf4af5b4206363e3c8a2b4@192.168.1.6:39946'}, 
-#              {u'selected': True, u'id': u'PYRO:obj_524ad7477ca74bd8a5bdeac0c3f6e989@192.168.1.128:36172'}]}
-#{u'devices': [{u'selected': True, u'id': u'PYRO:obj_e650cbd7dfd34570ad2c12134c5b2d2f@192.168.1.6:50994'}]}
+class SetPlayersActiveHandler(BaseHandler):
+    def post(self):
+        print("SetPlayersActiveHandler")
+        data = self.json_args
+        print(data)
+        #print(data)
+        #{u'devices': [{u'selected': True, u'id': u'PYRO:obj_9028e59851cf4af5b4206363e3c8a2b4@192.168.1.6:39946'}, 
+        #              {u'selected': True, u'id': u'PYRO:obj_524ad7477ca74bd8a5bdeac0c3f6e989@192.168.1.128:36172'}]}
+        #{u'devices': [{u'selected': True, u'id': u'PYRO:obj_e650cbd7dfd34570ad2c12134c5b2d2f@192.168.1.6:50994'}]}
         for device in data['devices']:
             self.application.controller.set_device_active(device['id'], device['selected'])
-
-        #for device in self.application.controller.get_devices():
-        #    #print(device.uri)
-        #    #active = device.uri in uris
-        #    print(active)
-        #    self.application.controller.set_device_active(device.uri in uris, device.url)
 
         self.write({'return': 'ok'})
         self.finish()
@@ -104,10 +119,15 @@ class PlayFileHandler(BaseHandler):
         self.finish()
 
 class StopPlayHandler(BaseHandler):
-    def get(self):
-        self.application.controller.stop()
-        self.write({'return': 'ok'})
-        self.finish()
+    def post(self):
+        try:
+            print("what")
+            self.application.controller.stop()
+            self.write({'return': 'ok'})
+            print("finish stop")
+            self.finish()
+        except Exception as ex:
+            print(str(ex))
 
 class VolumeHandler(BaseHandler):
     def get(self):
@@ -129,12 +149,15 @@ class GetTracksHandler(BaseHandler):
                     }
                 )
 
+        #self.set_header("Content-Type", "application/json") 
         self.write({'items': tracks})
         self.finish()
 
 
 class GetDevicesHandler(BaseHandler):
     def get(self):
+        print("GetDevicesHandler")
+        self.content_type = 'application/json'
         self.write({'devices': [(i.uri, i.proxy.name) for i in self.application.controller.get_devices()]})
         self.finish()
 
@@ -166,6 +189,9 @@ class Device(object):
 @Pyro4.expose
 class PlayerCallback(object):
 
+    def __init__(self, app):
+        self.application = app
+
     #@Pyro4.callback
     def play_started(self):
         print("callback: play started")
@@ -173,12 +199,22 @@ class PlayerCallback(object):
     #@Pyro4.callback
     def play_done(self, name):
         print("callback: play done from %s" % (name,))
+        url = self.application.controller.callback_url
+        if url[-1] != '/':
+            url += '/'
+        url = url + "play_done/"
+        print("calling " + url)
+        r = requests.get(url)
+        print(r.status_code)
+
 
 # Plugin hook.
 class PartyZoneWebPlugin(BeetsPlugin):
 
     class Controller(object):
         def __init__(self, directory = None):
+            self.callback_url = None
+
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
                 self.master = None
@@ -315,6 +351,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app = tornado.web.Application([
                     #(r"/", MainHandler),
                     (r"/set_active_players$", SetPlayersActiveHandler),
+                    (r"/callback_register$", RegisterCallbackHandler),
                     (r"/playtrack$", PlayFileHandler),
                     (r"/tracks$", GetTracksHandler),      
                     (r"/stop$", StopPlayHandler),
@@ -334,7 +371,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app.listen(app.port, address="0.0.0.0")
             app.controller = PartyZoneWebPlugin.Controller()
             
-            app.player_callback = PlayerCallback()
+            app.player_callback = PlayerCallback(app)
            
             with Pyro4.core.Daemon(app.local_ip, port=8888) as daemon:
                 self.daemon = daemon

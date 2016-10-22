@@ -19,7 +19,16 @@ export class Tracks {
 
   }
 
-  async activate(): Promise<void> {
+  canActivate(params, navigationInstruction) {    
+    if(navigationInstruction.route == "partyzone_event/:event_type") {
+      alert("event called");
+      return false;
+    }
+
+    return true;
+  }
+
+  async activate(params, navigationInstruction): Promise<void> {
     this.tracks = await this.allplay.getTracks();
     this.numberOfPages = Math.ceil(this.tracks.length / this.tracksPerPage);
     this.setPage(1);

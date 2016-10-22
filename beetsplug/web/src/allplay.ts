@@ -65,13 +65,20 @@ export class AllPlay {
       config
         .useStandardConfiguration()
         .withBaseUrl('http://127.0.0.1:5000/')
+        .withDefaults({
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        //'Content-Type': 'application/json'
+                    }
+                })
         .withInterceptor({
             request(request) {
-                if(self.debug) {
-                  //console.log(`Requesting ${request.method} ${request.url}`);
-                  let jsonTracks = require("./json/tracks.json");
-                  return new Response(JSON.stringify(jsonTracks));   // Fake Data
-                }
+                // if(self.debug) {
+                //   //console.log(`Requesting ${request.method} ${request.url}`);
+                //   let jsonTracks = require("./json/tracks.json");
+                //   return new Response(JSON.stringify(jsonTracks));   // Fake Data
+                // }
 
                 return request; // you c = an return a modified Request, or you can short-circuit the request by returning a Response
             },
@@ -80,6 +87,21 @@ export class AllPlay {
                 return response;
             }
         })
+    });
+  }
+
+  handleErrors(response) {
+    if (!response.ok) {
+        throw Error(response.statusText);
+    }
+    return response;
+  }
+
+  async setupCallback(url : string) {
+    let parameters = {'url': url };
+    await this.http.fetch('callback_register', {
+        method: 'post',
+        body: JSON.stringify(parameters)
     });
   }
 
@@ -149,8 +171,12 @@ export class AllPlay {
     await fetch;
 
     this.http.fetch('stop', {
-        method: 'get'
-    });
+        method: 'post'
+    })
+    .catch(this.handleErrors) 
+    {
+      let h=6;
+    };
   }
 
   async play(): Promise<void> {
@@ -178,9 +204,9 @@ export class AllPlay {
     let parameters = { 'track_id': track.id };
     this.http.fetch('playtrack', {
         method: 'post',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        // headers: {
+        //     'Content-Type': 'application/json'
+        // },
         body: JSON.stringify(parameters)
     });
   }
@@ -238,9 +264,9 @@ export class AllPlay {
 
       this.http.fetch('set_active_players', {
         method: 'post',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+  //      headers: {
+  //          'Content-Type': 'application/json'
+  //      },
         body: JSON.stringify(parameters)
       });
 
