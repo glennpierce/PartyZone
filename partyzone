@@ -67,6 +67,11 @@ class Player(object):
                 self.track = self.master.track
                 self.play()
 
+        # wait until things stop
+        self.bus =  self.playbin.get_bus()
+        self.bus.add_signal_watch()
+        self.bus.connect("message", self.on_message) 
+
     @property
     def name(self):
         return self._name
@@ -152,11 +157,6 @@ class Player(object):
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
         self.playbin.set_base_time(self.base_time)    
  
-        # wait until things stop
-        bus =  self.playbin.get_bus()
-        bus.add_signal_watch()
-        bus.connect("message", self.on_message) 
-
         print("setting uri to %s" % (self.track,))
         self.playbin.set_property('uri', self.track)
        
