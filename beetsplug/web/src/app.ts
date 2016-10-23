@@ -16,7 +16,7 @@ export class App {
   configureRouter(config: RouterConfiguration, router: Router) {
     config.title = 'AllPlay';
     config.map([
-      { route: ['', 'tracks', 'partyzone_event/:event_type'],  name: 'tracks',   moduleId: './tracks',   nav: true, title: 'Tracks' },
+      { route: ['', 'tracks'],  name: 'tracks',   moduleId: './tracks',   nav: true, title: 'Tracks' },
       { route: 'speakers',  name: 'speakers',   moduleId: './speakers',   nav: true, title: 'Speakers' },
       { route: 'queue',  name: 'queue',   moduleId: './queue',   nav: true, title: 'Queue' },
       { route: 'track-edit/:id', name: 'track-edit',   moduleId: './track-edit',   nav: false, title: 'Track Edit' },
@@ -26,14 +26,14 @@ export class App {
     this.router = router;
   }
 
-  getBaseUrl() {
-    var re = new RegExp(/^.*\//);
-    return re.exec(window.location.href).toString();
-  }
+  // getBaseUrl() {
+  //   var re = new RegExp(/^.*\//);
+  //   return re.exec(window.location.href).toString();
+  // }
 
   activate() {
 
-    let base : string = this.getBaseUrl();
-    this.allplay.setupCallback(base + 'partyzone_event/');
+    //let base : string = this.getBaseUrl();
+    //this.allplay.setupAutoMode(false);
   }
 }

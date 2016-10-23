@@ -4,16 +4,6 @@ import {HttpClient} from 'aurelia-fetch-client';
 // polyfill fetch client conditionally
 const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
 
-function mapToJson(map) : string {
-    return JSON.stringify(Array.from(map.entries()));
-    //return "";
-}
-
-function jsonToMap(jsonStr : string) {
-    let json = JSON.parse(jsonStr);
-    return new Map<number, ITrack>(json);
-    //return new Map();
-}
 
 export interface ITrack {
   id: number;
@@ -44,19 +34,16 @@ export class Speaker {
   }
 }
 
-export type QueueContainer = Map<number, ITrack>;
 
 @inject(Lazy.of(HttpClient))
 export class AllPlay {
   debug : boolean = false;
   tracks: Array<ITrack> = [];
   speakers: Array<Speaker> = [];
-  queue: QueueContainer = new Map<number, ITrack>();
+  
   http: HttpClient;
 
   constructor(private getHttpClient: () => HttpClient) {
-    this.queue = jsonToMap(localStorage.getItem("queue"));
-
     this.http = this.getHttpClient();
 
     let self = this;
@@ -69,7 +56,6 @@ export class AllPlay {
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        //'Content-Type': 'application/json'
                     }
                 })
         .withInterceptor({
@@ -97,14 +83,6 @@ export class AllPlay {
     return response;
   }
 
-  async setupCallback(url : string) {
-    let parameters = {'url': url };
-    await this.http.fetch('callback_register', {
-        method: 'post',
-        body: JSON.stringify(parameters)
-    });
-  }
-
   async fetchTracks(): Promise<void> {
 
     // ensure fetch is polyfilled before we create the http client
@@ -129,21 +107,22 @@ export class AllPlay {
       return this.tracks.filter(track => track.id === +id)[0];
   }
 
-  addToQueue(track: ITrack) {
-    //this.queue.push(track)
-    this.queue.set(+track.id, track);
-    localStorage.setItem("queue", mapToJson(this.queue));
-    console.log(track);
-    event.preventDefault();
+  async addToQueue(track: ITrack) {
+    let parameters = { 'track_id': track.id };
+    await this.http.fetch('add_to_queue', {
+        method: 'post',
+        body: JSON.stringify(parameters)
+    });
   }
 
-  isTrackInQueue(track: ITrack) : boolean {
+  async setupQueueMode(mode : boolean) {
+    await fetch;
 
-    return false;
-  }
-
-  getQueuedItems() : QueueContainer {
-      return this.queue;
+    let parameters = {'mode': mode };
+    this.http.fetch('set_queue_mode', {
+        method: 'post',
+        body: JSON.stringify(parameters)
+    });
   }
 
   async updateTrackMetadata(track: ITrack): Promise<void> {
@@ -179,27 +158,26 @@ export class AllPlay {
     };
   }
 
-  async play(): Promise<void> {
+  async play_queue(): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
-    let entries = Array.from(this.queue.keys());
-    let parameters = { 'queue': entries };
-    this.http.fetch('play', {
-        method: 'post',
-        body: JSON.stringify(parameters)
+    this.setupQueueMode(true);
+
+    this.http.fetch('playqueue', {
+        method: 'post'
     });
   }
 
   async reset_queue() {
-    // ensure fetch is polyfilled before we create the http client
-    this.queue = new Map<number, ITrack>();
-    localStorage.setItem("queue", "[]");
+    await this.http.fetch('reset_queue');
   }
 
   async playTrack(track : ITrack): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
+
+    this.setupQueueMode(false);  // play individual song stops playing queue
 
     let parameters = { 'track_id': track.id };
     this.http.fetch('playtrack', {
@@ -258,20 +236,11 @@ export class AllPlay {
         speakerIds.push({'id': s.id, 'selected': s.selected});
       }
 
-      //localStorage.setItem("speakers", JSON.stringify(speakerIds));
-
       let parameters = {'devices': speakerIds};
 
       this.http.fetch('set_active_players', {
         method: 'post',
-  //      headers: {
-  //          'Content-Type': 'application/json'
-  //      },
         body: JSON.stringify(parameters)
       });
-
-      //this.queue = jsonToMap(localStorage.getItem("queue"));
-
-      //$cookies.putObject('selected_devices', $scope.selected_devices);
   }
 }

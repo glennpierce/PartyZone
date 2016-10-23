@@ -36,7 +36,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
         self.set_header("Access-Control-Allow-Headers", "Accept,Content-Type,Authorization")
         self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-        #self.set_header("Content-Type", "application/json") 
+        self.set_header("Content-Type", "application/json") 
         #print("set_default_headers")
 
     def write_error(self, status_code, **kwargs):
@@ -63,7 +63,7 @@ class BaseHandler(tornado.web.RequestHandler):
             try:
                 self.json_args = json.loads(self.request.body)
             except Exception as ex:
-                print(str(ex))
+                pass
 
 
 # class MainHandler(BaseHandler):
@@ -84,13 +84,32 @@ class TrackFileHandler(BaseHandler):
             self.write(data)
         self.finish()
 
-class RegisterCallbackHandler(BaseHandler):
+class SetQueueModeHandler(BaseHandler):
     def post(self):
         data = self.json_args
         if not data:
             return
-        self.application.controller.callback_url = data['url']
-        print("registed callback %s" % (self.application.controller.callback_url,))
+        self.application.controller.queue_mode = data['mode']
+        print("setting queue mode to %s" % (self.application.controller.queue_mode,))
+        self.write({'return': 'ok'})
+        self.finish()
+
+class ResetQueueHandler(BaseHandler):
+    def post(self):
+        self.application.controller.reset_queu()
+        print("resetting queue")
+        self.write({'return': 'ok'})
+        self.finish()
+
+class AddToQueueHandler(BaseHandler):
+    def post(self):
+        data = self.json_args
+        if not data or data.get('track_id', None) == None:
+            self.write({'return': 'error', 'message': 'No track_id'})
+            self.finish()
+            return
+        self.application.controller.add_to_queue(data['track_id'])
+        print("adding track_id %s to queue" % (data['track_id'],))
         self.write({'return': 'ok'})
         self.finish()
 
@@ -113,10 +132,24 @@ class PlayFileHandler(BaseHandler):
     def post(self):
         data = self.json_args
         track_id = data['track_id']
-        uri = 'http://' + unicode(self.application.local_ip) + ':' + unicode(self.application.port) + '/trackfile/' + unicode(track_id)
+        uri = self.application.controller.track_id_to_uri(track_id)
+        print(uri)
         self.application.controller.play(uri)
         self.write({'return': 'ok'})
         self.finish()
+
+class PlayQueueFileHandler(BaseHandler):
+    def post(self):
+        print("ddd")
+        next_track = self.application.controller.next_track()
+        print(next_track)
+        if next_track:
+            uri = self.application.controller.track_id_to_uri(next_track)
+            print(uri)
+            self.application.controller.play(uri)
+            print("done")
+            self.write({'return': 'ok'})
+            self.finish()
 
 class StopPlayHandler(BaseHandler):
     def post(self):
@@ -207,13 +240,22 @@ class PlayerCallback(object):
         r = requests.get(url)
         print(r.status_code)
 
+        if self.application.controller.queue_mode:
+            next_track = self.application.controller.next_track()
+            if next_track:
+                uri = self.application.controller.track_id_to_uri(next_track)
+                self.application.controller.play(uri)
+
 
 # Plugin hook.
 class PartyZoneWebPlugin(BeetsPlugin):
 
     class Controller(object):
-        def __init__(self, directory = None):
-            self.callback_url = None
+        def __init__(self, base_url=None, directory = None):
+            self.queue_mode = False
+            self.__queue = []
+            self.__queue_iter = iter(self.__queue)
+            self.base_url = base_url
 
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
@@ -262,7 +304,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
             print("setting slave device %s active to %s" % (device.proxy.name, device.active))
             device.proxy.stop()
   
-
         def get_devices(self):
             devices = [self.master]
             devices.extend(self.slaves)
@@ -274,6 +315,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
         def set_volume(self):   # TODO
             pass
+
+        def track_id_to_uri(self, track_id):
+            return self.base_url + '/trackfile/' + unicode(track_id)
 
         def play_done(self):
             print("callback: play done")
@@ -299,6 +343,20 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             #print("calling master stop")
             self.master.proxy.stop()
+
+        def add_to_queue(self, url):
+            self.__queue.append(url)
+
+        def next_track(self):
+            try:
+                return self.__queue_iter.next()
+            except StopIteration as ex:
+                self.reset_queue()
+                return None
+
+        def reset_queue(self):
+            self.__queue = []
+            self.__queue_iter = iter(self.__queue)
 
 
     def __init__(self):
@@ -332,6 +390,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 print(str(ex))
                 time.sleep(5)
 
+
     def commands(self):
 
         cmd = ui.Subcommand('partyzone', help=u'start the partyzone Web interface')
@@ -351,8 +410,11 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app = tornado.web.Application([
                     #(r"/", MainHandler),
                     (r"/set_active_players$", SetPlayersActiveHandler),
-                    (r"/callback_register$", RegisterCallbackHandler),
+                    (r"/set_queue_mode$", SetQueueModeHandler),
+                    (r"/add_to_queue$", AddToQueueHandler),
+                    (r"/reset_queue$", ResetQueueHandler),
                     (r"/playtrack$", PlayFileHandler),
+                    (r"/playqueue$", PlayQueueFileHandler),         
                     (r"/tracks$", GetTracksHandler),      
                     (r"/stop$", StopPlayHandler),
                     (r"/adjust_volume$", VolumeHandler),
@@ -369,7 +431,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app.local_ip = self.get_host()
 
             app.listen(app.port, address="0.0.0.0")
-            app.controller = PartyZoneWebPlugin.Controller()
+            app.controller = PartyZoneWebPlugin.Controller(base_url='http://' + unicode(app.local_ip) + ':' + unicode(app.port))
             
             app.player_callback = PlayerCallback(app)
            
