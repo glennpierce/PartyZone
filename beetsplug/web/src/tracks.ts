@@ -2,8 +2,10 @@ import {inject, Lazy, autoinject} from 'aurelia-framework';
 import {HttpClient} from 'aurelia-fetch-client';
 import {Router} from 'aurelia-router';
 import {AllPlay, ITrack} from './allplay';
+import {Queue} from './queue';
 
-@inject(AllPlay, Router)
+
+@inject(AllPlay, Router, Queue)
 export class Tracks {
   heading : string = 'Tracks';
   tracks : Array<ITrack> = [];
@@ -15,7 +17,7 @@ export class Tracks {
   visiblePageLinks : number = 16;
   searchText : string = "";
 
-  constructor(private allplay: AllPlay, private router: Router) {
+  constructor(private allplay: AllPlay, private router: Router, private queue: Queue) {
 
   }
 
@@ -58,7 +60,7 @@ export class Tracks {
   }
 
   addToQueue(event: any, track: ITrack) {
-    this.allplay.addToQueue(track);
+    this.queue.addToQueue(track);
   }
 
   gotoTrackEdit(event: any, track: ITrack) {
