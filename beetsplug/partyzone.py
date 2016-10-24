@@ -35,7 +35,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")
         self.set_header("Access-Control-Allow-Headers", "Accept,Content-Type,Authorization")
-        self.set_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        self.set_header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS")
         self.set_header("Content-Type", "application/json") 
         #print("set_default_headers")
 
@@ -140,21 +140,17 @@ class PlayFileHandler(BaseHandler):
 
 class PlayQueueFileHandler(BaseHandler):
     def post(self):
-        print("ddd")
         next_track = self.application.controller.next_track()
         print(next_track)
         if next_track:
             uri = self.application.controller.track_id_to_uri(next_track)
-            print(uri)
             self.application.controller.play(uri)
-            print("done")
             self.write({'return': 'ok'})
             self.finish()
 
 class StopPlayHandler(BaseHandler):
     def post(self):
         try:
-            print("what")
             self.application.controller.stop()
             self.write({'return': 'ok'})
             print("finish stop")
@@ -170,6 +166,7 @@ class VolumeHandler(BaseHandler):
 
 class GetTracksHandler(BaseHandler):
     def get(self):
+        self.content_type = 'application/json'
         tracks = []
         for item in self.application.lib.items():
             tracks.append(
@@ -182,7 +179,6 @@ class GetTracksHandler(BaseHandler):
                     }
                 )
 
-        #self.set_header("Content-Type", "application/json") 
         self.write({'items': tracks})
         self.finish()
 
@@ -232,19 +228,13 @@ class PlayerCallback(object):
     #@Pyro4.callback
     def play_done(self, name):
         print("callback: play done from %s" % (name,))
-        url = self.application.controller.callback_url
-        if url[-1] != '/':
-            url += '/'
-        url = url + "play_done/"
-        print("calling " + url)
-        r = requests.get(url)
-        print(r.status_code)
-
         if self.application.controller.queue_mode:
             next_track = self.application.controller.next_track()
             if next_track:
                 uri = self.application.controller.track_id_to_uri(next_track)
                 self.application.controller.play(uri)
+	    else:
+                self.application.controller.reset_queue()
 
 
 # Plugin hook.
@@ -319,8 +309,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
         def track_id_to_uri(self, track_id):
             return self.base_url + '/trackfile/' + unicode(track_id)
 
-        def play_done(self):
-            print("callback: play done")
+        #def play_done(self):
+        #    print("callback: play done")
 
         def play(self, uri):
             print(str(self.master))

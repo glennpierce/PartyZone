@@ -51,7 +51,7 @@ export class AllPlay {
     this.http.configure(config => {
       config
         .useStandardConfiguration()
-        .withBaseUrl('http://127.0.0.1:5000/')
+        .withBaseUrl('http://192.168.1.6:5000/')
         .withDefaults({
                     headers: {
                         'Content-Type': 'application/json',
@@ -88,7 +88,11 @@ export class AllPlay {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
-    const response = await this.http.fetch('tracks');
+    const response = await this.http.fetch('tracks/', {
+        method: 'get',
+        dataType : 'json'
+    });
+
     let result = await response.json();
     this.tracks = result['items'];
     console.log(this);
