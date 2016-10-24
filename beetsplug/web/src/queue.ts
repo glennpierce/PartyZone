@@ -20,12 +20,12 @@ function jsonToMap(jsonStr : string) {
 
 export type QueueContainer = Map<number, ITrack>;
 
-@inject(AllPlay, Router, Tracks)
+@inject(AllPlay, Router)
 export class Queue {
   heading: string = 'Queue';
   queued_tracks: QueueContainer = new Map<number, ITrack>();
 
-  constructor(private allplay: AllPlay, private router: Router, private tracks : Tracks) {
+  constructor(private allplay: AllPlay, private router: Router) {
 
   }
 
@@ -83,8 +83,8 @@ export class Queue {
   	return true;
   }
 
-  gotoTrackEdit(event: any, track: ITrack) {
-    this.tracks.gotoTrackEdit(event, track);
-  	return true;
-  }
+  // gotoTrackEdit(event: any, track: ITrack) {
+  //   this.tracks.gotoTrackEdit(event, track);
+  // 	return true;
+  // }
 }

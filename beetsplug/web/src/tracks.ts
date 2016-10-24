@@ -5,7 +5,7 @@ import {AllPlay, ITrack} from './allplay';
 import {Queue} from './queue';
 
 
-@inject(AllPlay, Router, Queue)
+@inject(AllPlay, Queue, Router)
 export class Tracks {
   heading : string = 'Tracks';
   tracks : Array<ITrack> = [];
@@ -17,7 +17,7 @@ export class Tracks {
   visiblePageLinks : number = 16;
   searchText : string = "";
 
-  constructor(private allplay: AllPlay, private router: Router, private queue: Queue) {
+  constructor(private allplay: AllPlay, private queue: Queue, private router: Router) {
 
   }
 
