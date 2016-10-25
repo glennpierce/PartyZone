@@ -96,7 +96,7 @@ class SetQueueModeHandler(BaseHandler):
 
 class ResetQueueHandler(BaseHandler):
     def post(self):
-        self.application.controller.reset_queu()
+        self.application.controller.reset_queue()
         print("resetting queue")
         self.write({'return': 'ok'})
         self.finish()
