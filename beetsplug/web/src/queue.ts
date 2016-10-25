@@ -61,13 +61,12 @@ export class Queue {
   }
 
   play(event: any) {
-    //this.allplay.setupAutoMode(true);
     this.allplay.play_queue();
     return true;
   }
 
   stop(event: any) {
-    //this.allplay.setupAutoMode(false);
+    this.allplay.setupQueueMode(false);
     this.allplay.stop();
     this.allplay.reset_queue();
     return true;
