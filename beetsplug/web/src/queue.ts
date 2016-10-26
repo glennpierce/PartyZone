@@ -50,8 +50,8 @@ export class Queue {
     this.queued_tracks = new Map<number, ITrack>();
     localStorage.setItem("queue", "[]");
     this.queued_tracks.clear();
-    this.allplay.reset_queue();
-  	return true;
+    this.allplay.empty_queue();
+    return true;
   }
 
   addToQueue(track: ITrack) {

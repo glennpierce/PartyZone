@@ -101,6 +101,13 @@ class ResetQueueHandler(BaseHandler):
         self.write({'return': 'ok'})
         self.finish()
 
+class EmptyQueueHandler(BaseHandler):
+    def post(self):
+        self.application.controller.empty_queue()
+        print("emptying queue")
+        self.write({'return': 'ok'})
+        self.finish()
+
 class AddToQueueHandler(BaseHandler):
     def post(self):
         data = self.json_args
@@ -345,9 +352,11 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 return None
 
         def reset_queue(self):
-            self.__queue = []
             self.__queue_iter = iter(self.__queue)
 
+        def empty_queue(self):
+            self.__queue = []
+            self.__queue_iter = iter(self.__queue)
 
     def __init__(self):
         super(PartyZoneWebPlugin, self).__init__()
@@ -403,6 +412,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     (r"/set_queue_mode$", SetQueueModeHandler),
                     (r"/add_to_queue$", AddToQueueHandler),
                     (r"/reset_queue$", ResetQueueHandler),
+                    (r"/empty_queue$", EmptyQueueHandler),
                     (r"/playtrack$", PlayFileHandler),
                     (r"/playqueue$", PlayQueueFileHandler),         
                     (r"/tracks$", GetTracksHandler),      

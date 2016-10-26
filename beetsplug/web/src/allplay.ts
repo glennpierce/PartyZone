@@ -177,6 +177,10 @@ export class AllPlay {
     await this.http.fetch('reset_queue');
   }
 
+  async empty_queue() {
+    await this.http.fetch('empty_queue');
+  }
+
   async playTrack(track : ITrack): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
