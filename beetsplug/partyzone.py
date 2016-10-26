@@ -352,6 +352,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 return None
 
         def reset_queue(self):
+            print("fhdhkgjhfdkjghdkj")
             self.__queue_iter = iter(self.__queue)
 
         def empty_queue(self):

@@ -174,11 +174,15 @@ export class AllPlay {
   }
 
   async reset_queue() {
-    await this.http.fetch('reset_queue');
+    await this.http.fetch('reset_queue', {
+        method: 'post'
+    });
   }
 
   async empty_queue() {
-    await this.http.fetch('empty_queue');
+    await this.http.fetch('empty_queue', {
+        method: 'post'
+    });
   }
 
   async playTrack(track : ITrack): Promise<void> {
