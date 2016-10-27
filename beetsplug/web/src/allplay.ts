@@ -88,7 +88,7 @@ export class AllPlay {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
-    const response = await this.http.fetch('tracks/', {
+    const response = await this.http.fetch('tracks', {
         method: 'get',
         dataType : 'json'
     });
