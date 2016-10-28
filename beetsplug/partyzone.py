@@ -279,7 +279,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 for name, uri in players.items():
                     if "partyzone.masterplayer" in name:
                         self.master = Device(uri)
-                        self.master.proxy.set_callback_uri(uri)
                     else:
                         try:
                             # If we can't call name slave is not there
@@ -470,6 +469,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             with Pyro4.core.Daemon(app.local_ip, port=8888) as daemon:
                 self.daemon = daemon
                 uri = daemon.register(app.player_callback)
+                app.controller.master.proxy.set_callback_uri(uri)
                 tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
                 tornado.ioloop.IOLoop.instance().start()
 
