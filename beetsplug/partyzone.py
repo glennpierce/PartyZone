@@ -237,11 +237,13 @@ class PlayerCallback(object):
         self.application = app
 
     #@Pyro4.callback
+    @Pyro4.oneway
     def play_started(self, name, is_master):
         if is_master:
             print("callback: play started")
 
     #@Pyro4.callback
+    @Pyro4.oneway
     def play_done(self, name, is_master):
         if not is_master:
             return
@@ -255,6 +257,7 @@ class PlayerCallback(object):
 	    else:
                 self.application.controller.reset_queue()
 
+    @Pyro4.oneway
     def player_exit(self, name, is_master):
         print("Player exited" + name)
 

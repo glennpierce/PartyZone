@@ -212,7 +212,7 @@ export class AllPlay {
     });
   }
 
-  async fetchSpeakers(): Promise<void> {
+  async getSpeakers(): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
@@ -220,30 +220,23 @@ export class AllPlay {
     let result = await response.json();
     let devices = result['devices'];
     
-    this.speakers = [];
+    let speakers = [];
 
     for (let i in devices) {
         let v = devices[i];
         let speaker : Speaker = new Speaker(this.http, v[0], v[1]);
-        this.speakers.push(speaker);
+        speakers.push(speaker);
     }
 
     console.log(this);
+    return speakers;
   }
 
-  async getSpeakers() {
-      if (this.speakers.length <= 0) {
-          await this.fetchSpeakers();
-      }
-
-      return this.speakers;
-  }
-
-  async selectSpeakers() {
+  async selectSpeakers(speakers : Speaker[]) {
 
       let speakerIds = Array<any>();
 
-      for (let i in this.speakers) {
+      for (let i in speakers) {
         let s = this.speakers[i];
         speakerIds.push({'id': s.id, 'selected': s.selected});
       }
