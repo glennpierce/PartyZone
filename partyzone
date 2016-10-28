@@ -135,6 +135,7 @@ class Player(object):
     def exit(self):
         print("remove from master")
         if self._callback:
+            print("hmm in self._callback")
             self._callback.player_exit(self.name, self.is_master)  # invoke the callback object
 
     @Pyro4.oneway
