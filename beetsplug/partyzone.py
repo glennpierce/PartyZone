@@ -284,7 +284,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                         try:
                             # If we can't call name slave is not there
                             s = Pyro4.Proxy(uri)
-                            s.set_callback_uri(uri)
+                            #s.set_callback_uri(uri)
                             if s.name is not None:
                                 self.slaves.append(Device(uri, s))
                         except:

@@ -11,7 +11,6 @@ export class Speakers {
   savedSpeakers = {};
 
   constructor(private allplay: AllPlay, private router: Router) {
-      this.setup();    
   }
 
   async setup() {
@@ -21,7 +20,7 @@ export class Speakers {
         this.savedSpeakers = JSON.parse(speakersJson);
       }
 
-      let speakers = await this.allplay.getSpeakers();
+      this.speakers = await this.allplay.getSpeakers();
 
       for (let i in this.speakers) {
           let s = this.speakers[i];
@@ -30,10 +29,11 @@ export class Speakers {
           }
       }
 
-      this.allplay.selectSpeakers(speakers);
+      this.allplay.selectSpeakers(this.speakers);
   }
 
   async activate(): Promise<void> {
+      this.setup();
   }
 
   speakerSelected(event: any, speaker: Speaker) {
