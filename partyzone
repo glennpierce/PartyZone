@@ -132,14 +132,6 @@ class Player(object):
         return state
 
     @Pyro4.oneway
-    def exit(self):
-        print("remove from master")
-        if self._callback:
-            print("hmm in self._callback")
-            self._callback.player_exit(self.name, self.is_master)  # invoke the callback object
-            print("fffffffff")
-
-    @Pyro4.oneway
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
         if self._callback:
@@ -336,19 +328,7 @@ if __name__ == '__main__':
 
             # add a Pyro event callback to the gui's mainloop
             player.install_pyro_event_callback(daemon)
-            try:
-                GObject.MainLoop().run()
-            except:
-                player.exit()
-                while True:
-                    # for as long as the pyro socket triggers, dispatch events
-                    s, _, _ = select.select(daemon.sockets, [], [], 0.01)
-                    if s:
-                       daemon.events(s)
-                    else:
-                        # no more events, stop the loop, we'll get called again soon anyway
-                        break
-
+            GObject.MainLoop().run()
 
         elif args.testsync:
 
