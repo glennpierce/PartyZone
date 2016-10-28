@@ -137,6 +137,7 @@ class Player(object):
         if self._callback:
             print("hmm in self._callback")
             self._callback.player_exit(self.name, self.is_master)  # invoke the callback object
+            print("fffffffff")
 
     @Pyro4.oneway
     def stop(self):
@@ -176,7 +177,7 @@ class Player(object):
 
         if self._callback:
             print("play started callback %s" % (self._callback_uri,))
-            Pyro4.Proxy(self._callback_uri).play_started()    # invoke the callback object
+            Pyro4.Proxy(self._callback_uri).play_started(self.name, self.is_master)    # invoke the callback object
 
     def install_pyro_event_callback(self, daemon):
         """
