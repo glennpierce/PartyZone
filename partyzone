@@ -79,6 +79,10 @@ class Player(object):
     @property
     def host(self):
         return self._host
+
+    @property
+    def player_is_master(self):
+        return self.is_master
  
     @property
     def track(self):
@@ -95,8 +99,8 @@ class Player(object):
         t = message.type
         if t == Gst.MessageType.EOS:
             self.playbin.set_state(Gst.State.NULL)
-            if self.is_master and self._callback:
-                self._callback.play_done(self.name)    # invoke the callback object
+            if self._callback:
+                self._callback.play_done(self.name, self.is_master)    # invoke the callback object
 
         elif t == Gst.MessageType.BUFFERING:
             percent = message.parse_buffering()
@@ -130,14 +134,14 @@ class Player(object):
     @Pyro4.oneway
     def exit(self):
         print("remove from master")
-        if self.is_master and self._callback:
-            self._callback.player_exit(self.name)  # invoke the callback object
+        if self._callback:
+            self._callback.player_exit(self.name, self.is_master)  # invoke the callback object
 
     @Pyro4.oneway
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
-        if self.is_master and self._callback:
-            self._callback.play_done(self.name)    # invoke the callback object
+        if self._callback:
+            self._callback.play_done(self.name, self.is_master)    # invoke the callback object
 
     @Pyro4.oneway
     def test(self):
@@ -169,7 +173,7 @@ class Player(object):
         print("setting basetime to %s" % (self.base_time,))
         self.playbin.set_state(Gst.State.PLAYING)
 
-        if self.is_master and self._callback:
+        if self._callback:
             print("play started callback %s" % (self._callback_uri,))
             Pyro4.Proxy(self._callback_uri).play_started()    # invoke the callback object
 

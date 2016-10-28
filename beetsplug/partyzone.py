@@ -237,11 +237,15 @@ class PlayerCallback(object):
         self.application = app
 
     #@Pyro4.callback
-    def play_started(self):
-        print("callback: play started")
+    def play_started(self, is_master):
+        if is_master:
+            print("callback: play started")
 
     #@Pyro4.callback
-    def play_done(self, name):
+    def play_done(self, name, is_master):
+        if not is_master:
+            return
+
         print("callback: play done from %s" % (name,))
         if self.application.controller.queue_mode:
             next_track = self.application.controller.next_track()
@@ -251,7 +255,7 @@ class PlayerCallback(object):
 	    else:
                 self.application.controller.reset_queue()
 
-    def player_exit(self, name):
+    def player_exit(self, name, is_master):
         print("Player exited" + name)
 
 
