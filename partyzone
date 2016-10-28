@@ -128,6 +128,10 @@ class Player(object):
         return state
 
     @Pyro4.oneway
+    def exit(self):
+        print("remove from master")
+
+    @Pyro4.oneway
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
         if self.is_master and self._callback:
@@ -324,39 +328,10 @@ if __name__ == '__main__':
 
             # add a Pyro event callback to the gui's mainloop
             player.install_pyro_event_callback(daemon)
-            GObject.MainLoop().run()
-
-        # elif args.recursive:
-
-        #     # Recursive directory player
-        #     with Pyro4.locateNS() as ns:
-        #         players = ns.list(prefix="partyzone")
-        #         master = None
-        #         slaves = []
-        #         for name, uri in players.items():
-        #             if "partyzone.masterplayer" in name:
-        #                 master = Pyro4.Proxy(uri)
-        #             else:
-        #                 slaves.append(Pyro4.Proxy(uri))
-
-        #         print("master: " + str(master))
-        #         print("slaves: " + str(slaves))
-
-        #         if not master:
-        #             print("No master player found")
-        #             sys.exit(0)
-
-        #     print("Playing dir: " + args.recursive)
-            
-        #     controller = Controller(master, slaves, args.recursive)
-            
-        #     with Pyro4.core.Daemon() as daemon:
-        #         daemon.register(controller)
-            
-        #         # add a Pyro event callback to the gui's mainloop
-        #         #controller.install_pyro_event_callback(daemon)
-        #         #GObject.MainLoop().run()
-        #         daemon.requestLoop()
+            try:
+                GObject.MainLoop().run()
+            except:
+                player.exit()
 
         elif args.testsync:
 

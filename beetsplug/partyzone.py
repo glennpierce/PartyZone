@@ -193,6 +193,7 @@ class GetTracksHandler(BaseHandler):
 class GetDevicesHandler(BaseHandler):
     def get(self):
         print("GetDevicesHandler")
+        self.application.controller.rediscover()
         self.content_type = 'application/json'
         self.write({'devices': [(i.uri, i.proxy.name) for i in self.application.controller.get_devices()]})
         self.finish()
@@ -257,17 +258,20 @@ class PartyZoneWebPlugin(BeetsPlugin):
     class Controller(object):
         
         def __discover(self, base_url=None, directory = None):
-            self.stop()
             self.queue_mode = False
             self.__queue = []
             self.__queue_iter = iter(self.__queue)
             self.base_url = base_url
             self.directory = directory
+            self.master = None
+            self.slaves = []
+
+            self.stop()
+
+            print("what redis")
 
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
-                self.master = None
-                self.slaves = []
                 for name, uri in players.items():
                     if "partyzone.masterplayer" in name:
                         self.master = Device(uri)
@@ -291,6 +295,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             #print(files)
 
         def rediscover(self):
+            print("rediscover")
             return self.__discover(self.base_url, self.directory)
 
         def __init__(self, base_url=None, directory = None):
@@ -313,11 +318,14 @@ class PartyZoneWebPlugin(BeetsPlugin):
                         self.master.proxy.stop()  # No active slaves. So may as well stop master playing
                 return
 
-            device = next((x for x in self.slaves if x.uri == uri), None)
-            device.active = active
-            print("setting slave device %s active to %s" % (device.proxy.name, device.active))
-            device.proxy.stop()
-  
+	    try:
+                device = next((x for x in self.slaves if x.uri == uri), None)
+                device.active = active
+                print("setting slave device %s active to %s" % (device.proxy.name, device.active))
+                device.proxy.stop()
+            except:
+                pass  
+
         def get_devices(self):
             devices = [self.master]
             devices.extend(self.slaves)
