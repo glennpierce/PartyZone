@@ -31,6 +31,7 @@ class Player(object):
             self._name = name
         else:
             self._name = gethostname()
+
         self._host = host
         self.clock_port = int(clock_port)
         self.master = master
@@ -133,7 +134,7 @@ class Player(object):
 
     @Pyro4.oneway
     def exit(self):
-        print("remove from master")
+        print("remove from master"+str(self._callback))
         if self._callback:
             print("hmm in self._callback")
             self._callback.player_exit(self.name, self.is_master)  # invoke the callback object
@@ -185,7 +186,6 @@ class Player(object):
         The callback checks the Pyro sockets for activity and dispatches to the
         daemon's event process method if needed.
         """
-
         def pyro_event():
             while True:
                 # for as long as the pyro socket triggers, dispatch events
@@ -195,9 +195,13 @@ class Player(object):
                 else:
                     # no more events, stop the loop, we'll get called again soon anyway
                     break
-            GObject.timeout_add(20, pyro_event)
+            if GObject.MainLoop().is_running():
+                GObject.timeout_add(20, pyro_event)
 
-        GObject.timeout_add(20, pyro_event)
+        if GObject.MainLoop().is_running():
+            GObject.timeout_add(20, pyro_event)
+        else:
+            pyro_event();
 
 
 if __name__ == '__main__':
@@ -336,19 +340,13 @@ if __name__ == '__main__':
 
             # add a Pyro event callback to the gui's mainloop
             player.install_pyro_event_callback(daemon)
-            try:
-                GObject.MainLoop().run()
-            except:
-                player.exit()
-                while True:
-                    # for as long as the pyro socket triggers, dispatch events
-                    s, _, _ = select.select(daemon.sockets, [], [], 0.01)
-                    if s:
-                       daemon.events(s)
-                    else:
-                        # no more events, stop the loop, we'll get called again soon anyway
-                        break
 
+            mainloop = GObject.MainLoop()
+            try:
+                mainloop.run()
+            except KeyboardInterrupt:
+                #player.exit()
+                mainloop.quit()
 
         elif args.testsync:
 
