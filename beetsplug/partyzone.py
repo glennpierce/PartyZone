@@ -251,7 +251,7 @@ class PlayerCallback(object):
 	    else:
                 self.application.controller.reset_queue()
 
-    def player_exited(self, name):
+    def player_exit(self, name):
         print("Player exited" + name)
 
 

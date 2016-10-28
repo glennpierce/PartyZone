@@ -334,6 +334,15 @@ if __name__ == '__main__':
                 GObject.MainLoop().run()
             except:
                 player.exit()
+                while True:
+                # for as long as the pyro socket triggers, dispatch events
+                s, _, _ = select.select(daemon.sockets, [], [], 0.01)
+                if s:
+                    daemon.events(s)
+                else:
+                    # no more events, stop the loop, we'll get called again soon anyway
+                    break
+
 
         elif args.testsync:
 
