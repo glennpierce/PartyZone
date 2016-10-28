@@ -197,6 +197,13 @@ class GetDevicesHandler(BaseHandler):
         self.write({'devices': [(i.uri, i.proxy.name) for i in self.application.controller.get_devices()]})
         self.finish()
 
+class RediscoverDevicesHandler(BaseHandler):
+    def post(self):
+        print("RediscoverDevicesHandler")
+        self.content_type = 'application/json'
+        self.application.controller.rediscover()
+        self.write({'return': 'ok'})
+        self.finish()
 
 class UpdateTrackHandler(BaseHandler):
     def post(self):
@@ -248,11 +255,14 @@ class PlayerCallback(object):
 class PartyZoneWebPlugin(BeetsPlugin):
 
     class Controller(object):
-        def __init__(self, base_url=None, directory = None):
+        
+        def __discover(self, base_url=None, directory = None):
+            self.stop()
             self.queue_mode = False
             self.__queue = []
             self.__queue_iter = iter(self.__queue)
             self.base_url = base_url
+            self.directory = directory
 
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
@@ -261,6 +271,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 for name, uri in players.items():
                     if "partyzone.masterplayer" in name:
                         self.master = Device(uri)
+                        self.master.proxy.set_callback_uri(uri)
                     else:
                         try:
                             # If we can't call name slave is not there
@@ -278,6 +289,12 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             #files = self.get_files()
             #print(files)
+
+        def rediscover(self):
+            return self.__discover(self.base_url, self.directory)
+
+        def __init__(self, base_url=None, directory = None):
+            return self.__discover(base_url, directory)
 
         def set_device_active(self, uri, active):
             # We can't not send / control master as it sends signals back after song has played etc.
@@ -338,8 +355,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             for slave in self.slaves:
                 slave.proxy.stop()
 
-            #print("calling master stop")
-            self.master.proxy.stop()
+            if self.master:
+                self.master.proxy.stop()
 
         def add_to_queue(self, url):
             self.__queue.append(url)
@@ -408,7 +425,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             root = os.path.dirname(__file__)
 
             app = tornado.web.Application([
-                    #(r"/", MainHandler),
+                    #(r"/", MainHandler),     
+                    (r"/rediscover_devices$", RediscoverDevicesHandler),
                     (r"/set_active_players$", SetPlayersActiveHandler),
                     (r"/set_queue_mode$", SetQueueModeHandler),
                     (r"/add_to_queue$", AddToQueueHandler),
@@ -439,9 +457,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
             with Pyro4.core.Daemon(app.local_ip, port=8888) as daemon:
                 self.daemon = daemon
                 uri = daemon.register(app.player_callback)
-                app.controller.master.proxy.set_callback_uri(uri)
-                print(uri)
-
                 tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
                 tornado.ioloop.IOLoop.instance().start()
 
