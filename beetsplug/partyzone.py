@@ -257,10 +257,6 @@ class PlayerCallback(object):
 	    else:
                 self.application.controller.reset_queue()
 
-    @Pyro4.oneway
-    def player_exit(self, name, is_master):
-        print("Player exited" + name)
-
 
 # Plugin hook.
 class PartyZoneWebPlugin(BeetsPlugin):
@@ -277,8 +273,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
             self.slaves = []
 
             self.stop()
-
-            print("what redis")
 
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
