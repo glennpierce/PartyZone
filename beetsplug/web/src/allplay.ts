@@ -236,14 +236,14 @@ export class AllPlay {
 
       let speakerIds = Array<any>();
 
-      for (let i in speakers) {
-        let s = this.speakers[i];
+      for (let i = 0; i < speakers.length; i++) {
+        let s = speakers[i];
         speakerIds.push({'id': s.id, 'selected': s.selected});
       }
 
       let parameters = {'devices': speakerIds};
 
-      this.http.fetch('set_active_players', {
+      await this.http.fetch('set_active_players', {
         method: 'post',
         body: JSON.stringify(parameters)
       });

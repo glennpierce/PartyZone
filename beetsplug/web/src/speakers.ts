@@ -47,8 +47,7 @@ export class Speakers {
         }
     }
     localStorage.setItem("speakers", JSON.stringify(this.savedSpeakers));
-    //this.allplay.selectSpeakers(Object.keys(this.savedSpeakers));
-    this.allplay.selectSpeakers();
+    this.allplay.selectSpeakers(this.speakers);
     return true;
   }
 
