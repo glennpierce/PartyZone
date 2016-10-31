@@ -14,6 +14,7 @@ import argparse
 import os
 import os.path
 import requests
+import glob
 import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
@@ -28,6 +29,12 @@ from beets import util
 import tornado.ioloop
 import tornado.web
 
+from os.path import expanduser
+home = expanduser("~")
+playlist_dir = os.path.join(home, '.config', 'partyzone', 'playlists')
+
+if not os.path.exists(playlist_dir):
+    os.makedirs(playlist_dir)
 
 class BaseHandler(tornado.web.RequestHandler):
 
@@ -189,6 +196,32 @@ class GetTracksHandler(BaseHandler):
         self.write({'items': tracks})
         self.finish()
 
+class GetPlaylistsHandler(BaseHandler):
+    def get(self):
+        self.content_type = 'application/json'
+	playlist_names = glob.glob(playlist_dir + '/*.pz')
+        self.write({'items': playlist_names})
+        self.finish()
+
+class GetPlaylistHandler(BaseHandler):
+    def get(self, name):
+        #if not entry: raise tornado.web.HTTPError(404)
+        playlist = os.path.join(playlist_dir, name)
+        self.content_type = 'application/json'
+        tracks = open(playlist, 'r').readlines()
+        #for item in self.application.lib.items():
+        #    tracks.append(
+        #            {
+        #            'id': item.id,
+        #            'title': item.title,
+        #            'path': item.path,
+        #            'artist': item.artist,
+        #            'album': item.album
+        #            }
+        #        )
+
+        self.write({'items': tracks})
+        self.finish()
 
 class GetDevicesHandler(BaseHandler):
     def get(self):
@@ -299,7 +332,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
             #print(files)
 
         def rediscover(self):
-            print("rediscover")
             return self.__discover(self.base_url, self.directory)
 
         def __init__(self, base_url=None, directory = None):
@@ -381,7 +413,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 return None
 
         def reset_queue(self):
-            print("fhdhkgjhfdkjghdkj")
             self.__queue_iter = iter(self.__queue)
 
         def empty_queue(self):
@@ -438,7 +469,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             app = tornado.web.Application([
                     #(r"/", MainHandler),     
-                    (r"/rediscover_devices$", RediscoverDevicesHandler),
+                    #(r"/rediscover_devices$", RediscoverDevicesHandler),
                     (r"/set_active_players$", SetPlayersActiveHandler),
                     (r"/set_queue_mode$", SetQueueModeHandler),
                     (r"/add_to_queue$", AddToQueueHandler),
@@ -452,6 +483,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     (r"/get_devices$", GetDevicesHandler),
                     (r"/update$", UpdateTrackHandler),
                     (r"/trackfile/([0-9]+)", TrackFileHandler),
+                    (r"/playlists$", GetPlaylistsHandler),
+                    (r"/playlist/([^/]*)", GetPlaylistHandler),
                     (r"/(.*)", tornado.web.StaticFileHandler, {"path": root, "default_filename": "index.html"}),
                     
                 ], debug=True)
