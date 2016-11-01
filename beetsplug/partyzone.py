@@ -44,7 +44,12 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Headers", "Accept,Content-Type,Authorization")
         self.set_header("Access-Control-Allow-Methods", "GET, POST, DELETE, PUT, OPTIONS")
         self.set_header("Content-Type", "application/json") 
-        #print("set_default_headers")
+
+    def send_error(self, status_code=500, **kwargs):
+        if 'exc_info' in kwargs:
+            exception = kwargs['exc_info'][1]
+            print(exception)
+        return super(send_error, self).send_error(status_code, kwargs)
 
     def write_error(self, status_code, **kwargs):
         print ('In get_error_html. status_code: ' % (status_code,))
@@ -70,7 +75,8 @@ class BaseHandler(tornado.web.RequestHandler):
             try:
                 self.json_args = json.loads(self.request.body)
             except Exception as ex:
-                pass
+                print(str(ex))
+                raise
 
 
 # class MainHandler(BaseHandler):
@@ -199,7 +205,7 @@ class GetTracksHandler(BaseHandler):
 class GetPlaylistsHandler(BaseHandler):
     def get(self):
         self.content_type = 'application/json'
-	playlist_names = glob.glob(playlist_dir + '/*.pz')
+	playlist_names = glob.glob(playlist_dir + '/*')
         self.write({'items': playlist_names})
         self.finish()
 
@@ -208,20 +214,35 @@ class GetPlaylistHandler(BaseHandler):
         #if not entry: raise tornado.web.HTTPError(404)
         playlist = os.path.join(playlist_dir, name)
         self.content_type = 'application/json'
-        tracks = open(playlist, 'r').readlines()
-        #for item in self.application.lib.items():
-        #    tracks.append(
-        #            {
-        #            'id': item.id,
-        #            'title': item.title,
-        #            'path': item.path,
-        #            'artist': item.artist,
-        #            'album': item.album
-        #            }
-        #        )
-
+        lines = open(playlist, 'r').readlines()
+        tracks = []
+        for l in lines:
+            fields = [f.strip() for f in l.split(',')]
+            tracks.append(
+                          {
+                              'id': fields[0],
+                              'title': fields[1],
+                              'artist': fields[2],
+                              'album': fields[3],
+                              'path': fields[4],
+                          }
+                      )
         self.write({'items': tracks})
         self.finish()
+
+class SavePlaylistHandler(BaseHandler):
+    def post(self):
+        data = self.json_args
+        name = data['name']
+        tracks = data.get('tracks', None)
+        playlist = os.path.join(playlist_dir, name)
+        self.content_type = 'application/json'
+        with open(playlist, 'w') as f:
+            for t in tracks:
+                f.write("%s,%s,%s,%s,%s\n" % (t['id'], t['title'], t['artist'], t['album'], t['path']))
+        self.write({'return': 'ok'})
+        self.finish()
+
 
 class GetDevicesHandler(BaseHandler):
     def get(self):
@@ -241,7 +262,7 @@ class RediscoverDevicesHandler(BaseHandler):
 
 class UpdateTrackHandler(BaseHandler):
     def post(self):
-        data = request.get_json()
+        data = self.json_args
         item = data['item']
         db_item = self.application.lib.get_item(item['id'])
         db_item.update(item)
@@ -485,9 +506,10 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     (r"/trackfile/([0-9]+)", TrackFileHandler),
                     (r"/playlists$", GetPlaylistsHandler),
                     (r"/playlist/([^/]*)", GetPlaylistHandler),
+                    (r"/save_playlist$", SavePlaylistHandler),
                     (r"/(.*)", tornado.web.StaticFileHandler, {"path": root, "default_filename": "index.html"}),
                     
-                ], debug=True)
+                ], debug=False)
 
             app.lib = lib
             app.host = str(self.config['host'])
@@ -508,3 +530,13 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
         cmd.func = func
         return [cmd]
+
+
+if __name__ == "__main__":
+    app = tornado.web.Application([
+                    (r"/save_playlist$", SavePlaylistHandler),
+                ], debug=True)
+
+    app.listen(5000, address="0.0.0.0")
+    tornado.ioloop.IOLoop.instance().start()
+

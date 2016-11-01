@@ -65,6 +65,11 @@ export class Queue {
     return true;
   }
 
+  save(event: any) {
+    this.allplay.saveQueue("test", this.queued_tracks);
+    return true;
+  }
+
   stop(event: any) {
     this.allplay.setupQueueMode(false);
     this.allplay.stop();

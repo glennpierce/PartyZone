@@ -129,6 +129,24 @@ export class AllPlay {
     });
   }
 
+  async saveQueue(name : string, tracks : Map<number, ITrack>) {
+    await fetch;
+
+    let track_array : ITrack[] = []
+    let parameters = {'name': name };
+  
+    for (let t of tracks.values()) {
+        track_array.push(t);
+    }
+ 
+    parameters['tracks'] = track_array;
+
+    this.http.fetch('save_playlist', {
+        method: 'post',
+        body: JSON.stringify(parameters)
+    });
+  }
+
   async updateTrackMetadata(track: ITrack): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
