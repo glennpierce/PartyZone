@@ -2,11 +2,20 @@
   <require from="materialize-css/bin/materialize.css"></require>
   <section>
     <h2>${heading}</h2>
+    <select id="dd">
+          <option value="1" >What</option>
+          <option value="2" >What2</option>
+<option value="3" >What3</option>
+<option value="4" >Wha4</option>
+<option value="5" >Wha5</option>
+      </select>
+
     <button md-button="large: true;" click.delegate="play($event)">Play</button>
     <button md-button="large: true;" click.delegate="pause($event)">Pause</button>
     <button md-button="large: true;" click.delegate="stop($event)">Stop</button>
     <button md-button="large: true;" click.delegate="reset($event)">Empty Queue</button>
     <button md-button="large: true;" click.delegate="save($event)">Save Queue</button>
+    <button md-button="large: true;" click.delegate="loadPlaylist($event)">Load Playlist</button>
     <br><br>
     <div class="row au-stagger">
       <div class="card-container" repeat.for="[id, track] of queuedTracks">

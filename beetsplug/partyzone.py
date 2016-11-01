@@ -15,6 +15,7 @@ import os
 import os.path
 import requests
 import glob
+import traceback
 import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
@@ -49,6 +50,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if 'exc_info' in kwargs:
             exception = kwargs['exc_info'][1]
             print(exception)
+            print(traceback.format_exc())
         return super(send_error, self).send_error(status_code, kwargs)
 
     def write_error(self, status_code, **kwargs):
@@ -76,7 +78,6 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.json_args = json.loads(self.request.body)
             except Exception as ex:
                 print(str(ex))
-                raise
 
 
 # class MainHandler(BaseHandler):
@@ -204,8 +205,10 @@ class GetTracksHandler(BaseHandler):
 
 class GetPlaylistsHandler(BaseHandler):
     def get(self):
-        self.content_type = 'application/json'
+        #self.content_type = 'application/json'
 	playlist_names = glob.glob(playlist_dir + '/*')
+        playlist_names = [{'value' : p, 'name' : os.path.split(p)[1]} for p in playlist_names]
+        print(playlist_names)
         self.write({'items': playlist_names})
         self.finish()
 

@@ -8,15 +8,23 @@ import 'bootstrap';
 bootstrap(async (aurelia: Aurelia) => {
   aurelia.use
     .standardConfiguration()
-    //.plugin('aurelia-materialize-bridge', bridge => bridge.useAll())
+    .plugin('aurelia-materialize-bridge', bridge => bridge.useAll())
 
-    .plugin('aurelia-materialize-bridge', bridge => { bridge.useCheckbox().
-                                                             useInput().
-                                                             usePagination().
-                                                             useButton().
-                                                             useRange(); })
+    //.plugin('aurelia-materialize-bridge', bridge => { bridge.useCheckbox().
+    //                                                         useSelect().
+    //                                                         useInput().
+    //                                                         usePagination().
+    //                                                         useButton().
+    //                                                         useRange(); })
 
-    .developmentLogging();
+    .developmentLogging()
+    .plugin('aurelia-dialog', config => {
+      config.useDefaults();
+      config.settings.lock = true;
+      config.settings.centerHorizontalOnly = false;
+      config.settings.startingZIndex = 1005;
+    });
+
 
   //Uncomment the line below to enable animation.
   // aurelia.use.plugin('aurelia-animator-css');

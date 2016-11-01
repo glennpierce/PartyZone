@@ -90,7 +90,7 @@ export class AllPlay {
 
     const response = await this.http.fetch('tracks', {
         method: 'get',
-        dataType : 'json'
+        //dataType : 'json'
     });
 
     let result = await response.json();
@@ -145,6 +145,15 @@ export class AllPlay {
         method: 'post',
         body: JSON.stringify(parameters)
     });
+  }
+
+  async getPlaylists() {
+    await fetch;
+
+    let response = await this.http.fetch('playlists');
+    let result = await response.json();
+    let playlists = result['items'];
+    return playlists;
   }
 
   async updateTrackMetadata(track: ITrack): Promise<void> {
@@ -238,7 +247,7 @@ export class AllPlay {
     let result = await response.json();
     let devices = result['devices'];
     
-    let speakers = [];
+    let speakers : any[] = [];
 
     for (let i in devices) {
         let v = devices[i];

@@ -1,0 +1,21 @@
+<template>
+  <require from="materialize-css/bin/materialize.css"></require>
+  <ai-dialog>
+    <ai-dialog-header>
+    </ai-dialog-header>
+    <ai-dialog-body>
+      <h2>Playlists:</h2>
+      <select md-select value.two-way="selectedPlaylist">
+          <option repeat.for="playlist of playlists" model.bind="playlist">${playlist.name}</option>
+      </select>
+      <select>
+          <option value="1" >What</option>
+      </select>
+    </ai-dialog-body>
+
+    <ai-dialog-footer>
+      <button click.trigger="controller.cancel()">Cancel</button>
+      <button click.trigger="selectPlaylist(selectedPlaylist)">Ok</button>
+    </ai-dialog-footer>
+  </ai-dialog>
+</template>

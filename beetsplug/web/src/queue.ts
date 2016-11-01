@@ -1,8 +1,10 @@
 import {inject, Lazy, autoinject} from 'aurelia-framework';
+import {DialogService} from 'aurelia-dialog';
 import {HttpClient} from 'aurelia-fetch-client';
 import {Router} from 'aurelia-router';
 import {AllPlay, ITrack} from './allplay';
 import {Tracks} from './tracks';
+import {Playlist} from './playlist';
 
 // polyfill fetch client conditionally
 const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
@@ -20,12 +22,12 @@ function jsonToMap(jsonStr : string) {
 
 export type QueueContainer = Map<number, ITrack>;
 
-@inject(AllPlay, Router)
+@inject(AllPlay, DialogService, Router)
 export class Queue {
   heading: string = 'Queue';
   queued_tracks: QueueContainer = new Map<number, ITrack>();
 
-  constructor(private allplay: AllPlay, private router: Router) {
+  constructor(private allplay: AllPlay, private dialogService: DialogService, private router: Router) {
 
   }
 
@@ -40,6 +42,26 @@ export class Queue {
     console.log(this.queued_tracks);
 
     return;
+  }
+
+  async loadPlaylist(event: any) {
+
+    let auth = { error : ""};
+ 
+    this.dialogService.open({ viewModel: Playlist, model : auth }).then(response => {
+
+        if (!response.wasCancelled) {
+          //this.bcp.loginUsername(response.output.username, response.output.password);
+
+          //if(this.bcp.isAuthenticated()) {
+          //    this.section_detail = this.app.section_pages.get('yourhome');
+          //}
+
+ 	  console.log("here");
+        }
+      });
+
+    return true;
   }
 
   get queuedTracks() : {} {
