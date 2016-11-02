@@ -156,6 +156,15 @@ export class AllPlay {
     return playlists;
   }
 
+  async getPlaylist(name : string) : ITrack[] {
+    await fetch;
+
+    let response = await this.http.fetch('playlist/' + name);
+    let result = await response.json();
+    let tracks = result['items'];
+    return tracks;
+  }
+
   async updateTrackMetadata(track: ITrack): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;

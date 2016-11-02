@@ -16,6 +16,7 @@ import os.path
 import requests
 import glob
 import traceback
+import codecs
 import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
@@ -66,7 +67,8 @@ class BaseHandler(tornado.web.RequestHandler):
     def get(self):
         pass
 
-    def options(self):
+    def options(self, *args, **kwargs):
+    #def options(self):
         # no body
         self.set_status(204)
         self.finish()
@@ -217,7 +219,7 @@ class GetPlaylistHandler(BaseHandler):
         #if not entry: raise tornado.web.HTTPError(404)
         playlist = os.path.join(playlist_dir, name)
         self.content_type = 'application/json'
-        lines = open(playlist, 'r').readlines()
+        lines = codecs.open(playlist, 'r', encoding='utf-8').readlines()
         tracks = []
         for l in lines:
             fields = [f.strip() for f in l.split(',')]
@@ -240,7 +242,7 @@ class SavePlaylistHandler(BaseHandler):
         tracks = data.get('tracks', None)
         playlist = os.path.join(playlist_dir, name)
         self.content_type = 'application/json'
-        with open(playlist, 'w') as f:
+        with codecs.open(playlist, 'w', encoding='utf-8') as f:
             for t in tracks:
                 f.write("%s,%s,%s,%s,%s\n" % (t['id'], t['title'], t['artist'], t['album'], t['path']))
         self.write({'return': 'ok'})

@@ -4,18 +4,23 @@
     <ai-dialog-header>
     </ai-dialog-header>
     <ai-dialog-body>
-      <h2>Playlists:</h2>
-      <select md-select value.two-way="selectedPlaylist">
-          <option repeat.for="playlist of playlists" model.bind="playlist">${playlist.name}</option>
-      </select>
-      <select>
-          <option value="1" >What</option>
-      </select>
+      <div if.bind="choosePlaylist">
+          <h3>Playlists:</h3>
+          <div repeat.for="playlist of playlists" click.delegate="selectPlaylist($event, playlist)">${playlist.name}</div>
+      </div>
+      <div if.bind="!choosePlaylist">
+          <h3>Name:</h3>
+          <input type="text" value.bind="playListName" attach-focus="true" />
+      </div>
     </ai-dialog-body>
 
     <ai-dialog-footer>
       <button click.trigger="controller.cancel()">Cancel</button>
-      <button click.trigger="selectPlaylist(selectedPlaylist)">Ok</button>
+
+      <div if.bind="!choosePlaylist">
+          <button click.trigger="savePlaylist($event, playListName)">Save</button>
+      </div>
+
     </ai-dialog-footer>
   </ai-dialog>
 </template>

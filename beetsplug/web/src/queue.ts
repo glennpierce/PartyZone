@@ -46,33 +46,42 @@ export class Queue {
 
   async loadPlaylist(event: any) {
 
-    let auth = { error : ""};
- 
-    this.dialogService.open({ viewModel: Playlist, model : auth }).then(response => {
+    let state = {'queue' : this, 'choosePlaylist' : true};
+
+    this.dialogService.open({ viewModel: Playlist, model : state }).then(response => {
 
         if (!response.wasCancelled) {
-          //this.bcp.loginUsername(response.output.username, response.output.password);
-
-          //if(this.bcp.isAuthenticated()) {
-          //    this.section_detail = this.app.section_pages.get('yourhome');
-          //}
-
- 	  console.log("here");
+ 	  //console.log("here");
         }
       });
 
     return true;
   }
 
-  get queuedTracks() : {} {
+  async savePlaylist(event: any) {
+
+    let state = {'queue' : this, 'choosePlaylist' : false};
+
+    this.dialogService.open({ viewModel: Playlist, model : state }).then(response => {
+      });
+
+    return true;
+  }
+
+  get queuedTracks() : QueueContainer {
       return this.queued_tracks;
   }
 
-  async reset(event: any) {
+  resetQueue() {
     this.queued_tracks = new Map<number, ITrack>();
     localStorage.setItem("queue", "[]");
     this.queued_tracks.clear();
     this.allplay.empty_queue();
+    return true;
+  }
+
+  async reset(event: any) {
+    this.resetQueue();
     return true;
   }
 
@@ -87,10 +96,10 @@ export class Queue {
     return true;
   }
 
-  save(event: any) {
-    this.allplay.saveQueue("test", this.queued_tracks);
-    return true;
-  }
+  //save(event: any, name : string) {
+  //  this.allplay.saveQueue(name, this.queued_tracks);
+  //  return true;
+ // }
 
   stop(event: any) {
     this.allplay.setupQueueMode(false);
