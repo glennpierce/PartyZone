@@ -27,15 +27,15 @@ class Clock(object):
         if not self.clock_provider:
             print("No clock_provider set ?")
 
-    @Pyro4.oneway
+    @property
     def get_time():
         return self.system_clock.get_time()
 
-    @Pyro4.oneway
+    @property
     def get_host():
         return self.host
 
-    @Pyro4.oneway
+    @property
     def get_port():
         return self.port
 
