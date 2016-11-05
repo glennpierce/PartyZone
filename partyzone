@@ -26,27 +26,22 @@ from socket import gethostname
 @Pyro4.expose
 class Player(object):
 
-    def __init__(self, host, clock_port, master=None, name=None, card=None):
+    def __init__(self, host, clock_host, clock_port, name=None, card=None):
         if name:
             self._name = name
         else:
             self._name = gethostname()
         self._host = host
+        self.clock_host = clock_host
         self.clock_port = int(clock_port)
-        self.master = master
-        self.is_master = False if master else True
         self._track_uri = None
         self._card = card
         self._callback = None
         self.playbin = Gst.ElementFactory.make('playbin', 'playbin')
 
-        if self.is_master:
-            print("master player started on host: %s" % (self.host,))
-        else:
-            print("slave player started on host: %s" % (self.host,))
-            print(self.master.name)
+        print("player started on host: %s" % (self.host,))
 
-        self.base_time = Gst.CLOCK_TIME_NONE
+        self.basetime = Gst.CLOCK_TIME_NONE
         self.stop()
 
         if self._card:
@@ -54,18 +49,6 @@ class Player(object):
             alsa_sink = Gst.ElementFactory.make("alsasink", "alsasink")
             alsa_sink.set_property('device', self._card)
             self.playbin.set_property("audio-sink", alsa_sink)
-
-        if self.is_master:
-            self.system_clock = Gst.SystemClock.obtain()
-            time.sleep(1) # Wait for the clock to stabilise
-            self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, self.host, self.clock_port)
-            if not self.clock_provider:
-                print("No clock_provider set ?")
-        else:
-            # Check that master is playing or not
-            if self.master.state() == Gst.State.PLAYING:
-                self.track = self.master.track
-                self.play()
 
         # wait until things stop
         self.bus =  self.playbin.get_bus()
@@ -80,10 +63,6 @@ class Player(object):
     def host(self):
         return self._host
 
-    @property
-    def player_is_master(self):
-        return self.is_master
- 
     @property
     def track(self):
         if not self._track_uri:
@@ -100,7 +79,7 @@ class Player(object):
         if t == Gst.MessageType.EOS:
             self.playbin.set_state(Gst.State.NULL)
             if self._callback:
-                self._callback.play_done(self.name, self.is_master)    # invoke the callback object
+                self._callback.play_done(self.name)    # invoke the callback object
 
         elif t == Gst.MessageType.BUFFERING:
             percent = message.parse_buffering()
@@ -124,7 +103,7 @@ class Player(object):
         self._callback = Pyro4.Proxy(self._callback_uri)
 
     def get_basetime(self):
-        return self.base_time
+        return self.basetime
 
     def state(self):
         state = int(self.playbin.get_state(Gst.CLOCK_TIME_NONE)[1])
@@ -135,41 +114,34 @@ class Player(object):
     def stop(self):
         self.playbin.set_state(Gst.State.NULL)
         if self._callback:
-            self._callback.play_done(self.name, self.is_master)    # invoke the callback object
+            self._callback.play_done(self.name)    # invoke the callback object
 
     @Pyro4.oneway
     def test(self):
         print("oneway test call")
 
     @Pyro4.oneway
-    def play(self):
-
-        if self.is_master:
-            #print("connecting to net clock %s:%s" % (self.host, self.clock_port))
-            #self.base_time = self.clock_provider.get_property('clock').get_time()
-            #client_clock = GstNet.NetClientClock.new('clock', self.host, self.clock_port, self.base_time)
-            client_clock = self.system_clock
-            self.base_time = client_clock.get_time()
-        else:
-            print("connecting to net clock %s:%s" % (self.master.host, self.clock_port))
-            self.base_time = self.master.get_basetime()
-            client_clock = GstNet.NetClientClock.new('clock', self.master.host, self.clock_port, self.base_time)
+    def play(self, basetime=Gst.CLOCK_TIME_NONE):
+        print("connecting to net clock %s:%s" % (self.clock_host , self.clock_port))
+        client_clock = GstNet.NetClientClock.new('clock', self.clock_host , self.clock_port, basetime)
         
         time.sleep(1.0) # Wait for the clock to stabilise
 
         self.playbin.use_clock(client_clock)
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
-        self.playbin.set_base_time(self.base_time)    
- 
+        self.playbin.set_base_time(basetime)    
+        print("setting basetime to %s" % (basetime,))
+
         print("setting uri to %s" % (self.track,))
         self.playbin.set_property('uri', self.track)
        
-        print("setting basetime to %s" % (self.base_time,))
         self.playbin.set_state(Gst.State.PLAYING)
+
+        self.basetime = client_clock.get_time()
 
         if self._callback:
             print("play started callback %s" % (self._callback_uri,))
-            self._callback.play_started(self.name, self.is_master)    # invoke the callback object
+            self._callback.play_started(self.name)    # invoke the callback object
 
     def install_pyro_event_callback(self, daemon):
         """
@@ -200,9 +172,12 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Syncronise music accross machines.')
 
-    parser.add_argument('--playertype', type=str, dest='playertype', default='controller',
-        help='player type. master or slave (default slave)')
+    parser.add_argument('--player', type=str, dest='playertype', default='controller',
+        help='player type. controller or player')
     
+    parser.add_argument('--clock-host', type=int, dest='clock_host', default='127.0.0.1',
+        help='port used for the network clock')
+
     parser.add_argument('--clock-port', type=int, dest='clock_port', default='5342',
         help='port used for the network clock')
 
@@ -242,39 +217,7 @@ if __name__ == '__main__':
 
     try:
 
-        if args.playertype == "master":
-
-            if not args.host:   
-                raise AttributeError("host parameter required")
-
-            player = Player(args.host, args.clock_port, name=args.name, card=args.card)
- 
-            register_name = "partyzone.masterplayer (%s)" % args.name
-            ns = Pyro4.naming.locateNS()
-
-            try:
-                existing = ns.lookup(register_name)
-                print("Player still exists in Name Server with id: %s" % existing.object)
-                print("Previous daemon socket port: %d" % existing.port)
-                # start the daemon on the previous port
-                daemon = Pyro4.core.Daemon(host=args.host, port=existing.port)
-                # register the object in the daemon with the old objectId
-                daemon.register(player, objectId=existing.object)
-            except Pyro4.errors.NamingError:
-
-                # just start a new daemon on a random port
-                daemon = Pyro4.core.Daemon(args.host)
-                # register the object in the daemon and let it get a new objectId
-                # also need to register in name server because it's not there yet.
-                uri = daemon.register(player)
-                ns.register(register_name, uri)
-                print("Server started.")
-
-            # add a Pyro event callback to the gui's mainloop
-            player.install_pyro_event_callback(daemon)
-            GObject.MainLoop().run()
-
-        elif args.playertype == "slave":
+        if args.playertype == "player":
 
             if not args.host:
                 raise AttributeError("host parameter required")
@@ -292,22 +235,8 @@ if __name__ == '__main__':
                     sys.exit(1)
                 time.sleep(5)
 
-            master_uri = None
-
-            while True:
-                try:
-                    master_uri = list(ns.list(prefix="partyzone.masterplayer").values())[0]
-                    break
-                except IndexError:           
-                    print("Can't find master player")
-                except ex:
-                    print(str(ex))
-                    sys.exit(1)
-                time.sleep(5)          
-
-            master = Pyro4.Proxy(master_uri)
-            register_name = "partyzone.slave (%s)" % args.name
-            player = Player(args.host, args.clock_port, master, name=args.name, card=args.card)
+            register_name = "partyzone.(%s)" % args.name
+            player = Player(args.host, args.clock_host, args.clock_port, name=args.name, card=args.card)
 
             try:
                 existing = ns.lookup(register_name)
@@ -335,37 +264,31 @@ if __name__ == '__main__':
             # Example controller
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone")
-                master = None
-                slaves = []
+                players = []
                 for name, uri in players.items():
-                    if "partyzone.masterplayer" in name:
-                        master = Pyro4.Proxy(uri)
-                    else:
-                        slaves.append(Pyro4.Proxy(uri))
-                print("master: " + str(master))
-                print("slaves: " + str(slaves))
+                    players.append(Pyro4.Proxy(uri))
+                print("players: " + str(players))
 
-                if not master:
-                    print("No master player found")
-                    sys.exit(0)
-
-            path = os.path.dirname(os.path.realpath(__file__))
+            #path = os.path.dirname(os.path.realpath(__file__))
             #filepath = 'file://' + os.path.join(path, 'testing/test/mp3')
             filepath = 'file:///home/glenn/test.mp3'
 
-            master.track = filepath
-            master.play()
-
-            if len(slaves) > 0:
+            if len(players) > 0:
                 try:
-                    slaves[0].track = filepath
-                    slaves[0].play()
+                    players[0].track = filepath
+                    players[0].play()
+                    basetime = players[0].get_basetime()
+
+                    for p in players[1:]:
+                        p.track = filepath
+                        p.play(basetime)
+
                 except Pyro4.errors.CommunicationError as ex:
                     pass
 
         elif args.play:
 
-            player = Player(args.host, args.clock_port, name=args.name, card=args.card)
+            player = Player(args.host, args.clock_host, args.clock_port, name=args.name, card=args.card)
 
             filepath = 'file://' + args.play
 

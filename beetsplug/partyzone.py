@@ -328,8 +328,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             self.__queue_iter = iter(self.__queue)
             self.base_url = base_url
             self.directory = directory
-            self.master = None
-            self.slaves = []
+            self.players = []
 
             self.stop()
 
