@@ -173,6 +173,15 @@ class Player(object):
         GObject.timeout_add(20, pyro_event)
 
 
+def find_network_clock(ns):
+    clocks = ns.list(prefix="partyzone.clock").items()
+    network_clock = None
+    if clocks:
+        name, uri = clocks[0]
+        network_clock = Pyro4.Proxy(uri)
+    return network_clock
+
+
 if __name__ == '__main__':
 
     # default host name
@@ -244,11 +253,8 @@ if __name__ == '__main__':
                     sys.exit(1)
                 time.sleep(5)
 
-            clocks = ns.list(prefix="partyzone.clock").items()
-            network_clock = None
-            if clocks:
-                name, uri = clocks[0]
-                network_clock = Pyro4.Proxy(uri)
+
+            network_clock = find_network_clock(ns)
                 
             if not network_clock:
                 raise AttributeError("network clock required")
@@ -306,7 +312,12 @@ if __name__ == '__main__':
 
         elif args.play:
 
-            player = Player(args.host, args.clock_host, args.clock_port, name=args.name, card=args.card)
+            network_clock = find_network_clock(ns)
+                
+            if not network_clock:
+                raise AttributeError("network clock required")
+
+            player = Player(args.host, network_clock=network_clock, name=args.name, card=args.card)
 
             filepath = 'file://' + args.play
 
