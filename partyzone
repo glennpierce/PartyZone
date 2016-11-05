@@ -130,7 +130,7 @@ class Player(object):
         if basetime==Gst.CLOCK_TIME_NONE:
             basetime = self._network_clock.get_time()
 
-        print("connecting to net clock %s:%s" % (self._network_clock.get_host(), self._network_clock.get_port())
+        print("connecting to net clock %s:%s" % (self._network_clock.get_host(), self._network_clock.get_port()))
         client_clock = GstNet.NetClientClock.new('clock', self._network_clock.get_host(),
                                                           self._network_clock.get_port(), basetime)
         
