@@ -120,14 +120,14 @@ class Player(object):
         print("oneway test call")
 
     @Pyro4.oneway
-    def play(self, basetime=Gst.CLOCK_TIME_NONE):
+    def play(self, basetime=None):
 
         #client_clock = self.system_clock
         # if basetime==Gst.CLOCK_TIME_NONE:
         #     client_clock = self.system_clock
         #     basetime = client_clock.get_time()
 
-        if basetime==Gst.CLOCK_TIME_NONE:
+        if not basetime:
             basetime = self._network_clock.system_time
 
         print("connecting to net clock %s:%s" % (self._network_clock.host, self._network_clock.port))
@@ -295,10 +295,11 @@ if __name__ == '__main__':
                 try:
                     players[0].track = filepath
                     players[0].play()
-                    basetime = players[0].get_basetime()
-
+                    basetime = None # players[0].get_basetime()
+          
                     for p in players[1:]:
                         p.track = filepath
+                        print("setting basetime for %s to %s" % (p.name, str(basetime)))
                         p.play(basetime)
 
                 except Pyro4.errors.CommunicationError as ex:
