@@ -192,12 +192,6 @@ if __name__ == '__main__':
 
     parser.add_argument('--player', dest='player', action='store_true',
         help='player type. controller or player')
-    
-    parser.add_argument('--clock-host', type=str, dest='clock_host', default='127.0.0.1',
-        help='port used for the network clock')
-
-    parser.add_argument('--clock-port', type=int, dest='clock_port', default='5342',
-        help='port used for the network clock')
 
     parser.add_argument('--host', type=str, default=default_host, help="Host ip you wish to bind to")
 
