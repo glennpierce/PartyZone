@@ -378,13 +378,15 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     self.master.proxy.set_volume(0.0)
                     if not (x for x in self.slaves if x.active == True):
                         self.master.proxy.stop()  # No active slaves. So may as well stop master playing
+                #self.master.proxy.stop()
                 return
 
 	    try:
                 device = next((x for x in self.slaves if x.uri == uri), None)
                 device.active = active
                 print("setting slave device %s active to %s" % (device.proxy.name, device.active))
-                device.proxy.stop()
+                if not device.active:
+		    device.proxy.stop()
             except:
                 pass  
 

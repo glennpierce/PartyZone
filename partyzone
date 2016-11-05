@@ -145,9 +145,6 @@ class Player(object):
     def play(self):
 
         if self.is_master:
-            #print("connecting to net clock %s:%s" % (self.host, self.clock_port))
-            #self.base_time = self.clock_provider.get_property('clock').get_time()
-            #client_clock = GstNet.NetClientClock.new('clock', self.host, self.clock_port, self.base_time)
             client_clock = self.system_clock
             self.base_time = client_clock.get_time()
         else:
