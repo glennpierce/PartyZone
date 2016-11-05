@@ -293,14 +293,11 @@ if __name__ == '__main__':
 
             if len(players) > 0:
                 try:
-                    players[0].track = filepath
-                    players[0].play()
-                    basetime = None # players[0].get_basetime()
-          
-                    for p in players[1:]:
+                    basetime = None
+                    for p in players:
                         p.track = filepath
                         print("setting basetime for %s to %s" % (p.name, str(basetime)))
-                        p.play(basetime)
+                        basetime = p.play(basetime)
 
                 except Pyro4.errors.CommunicationError as ex:
                     pass
