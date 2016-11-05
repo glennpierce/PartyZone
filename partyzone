@@ -297,7 +297,8 @@ if __name__ == '__main__':
                     for p in players:
                         p.track = filepath
                         print("setting basetime for %s to %s" % (p.name, str(basetime)))
-                        basetime = p.play(basetime)
+                        p.play(basetime)
+                        basetime = p.get_basetime()
 
                 except Pyro4.errors.CommunicationError as ex:
                     pass
