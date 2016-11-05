@@ -64,13 +64,26 @@ if __name__ == '__main__':
     args = parser.parse_args()
    
     print("host: " + str(args.host))
-    print("port: " + str(args.port))
+    print("port: " + str(args.clockport))
 
     Gst.init(sys.argv)
 
-    clock = clock(args.host, args.clockport)
+    clock = Clock(args.host, args.clockport)
 
-    register_name = "partyzone.clock.(%s)" % args.name
+    register_name = "partyzone.clock.(%s)" % args.host
+
+    ns = None
+
+    while True:
+        try:
+            ns = Pyro4.naming.locateNS()
+            break
+        except Pyro4.errors.NamingError:
+            print("Can't find Pyro nameserver!")
+        except ex:
+            print(str(ex))
+            sys.exit(1)
+        time.sleep(5)
 
     try:
         existing = ns.lookup(register_name)
@@ -87,5 +100,5 @@ if __name__ == '__main__':
         ns.register(register_name, uri)
         print("Network Clock started.")
 
-    player.install_pyro_event_callback(daemon)
+    clock.install_pyro_event_callback(daemon)
     GObject.MainLoop().run()
