@@ -294,6 +294,7 @@ if __name__ == '__main__':
 
             if len(players) > 0:
                 try:
+                    p = players[0]
                     p.track = filepath
                     print("setting basetime for %s to None" % (p.name,))
                     basetime = p.play(None)
