@@ -19,6 +19,8 @@ import Pyro4
 @Pyro4.expose
 class Clock(object):
     def __init__(self, host, port):
+        self.host = host
+        self.port = port
         self.system_clock = Gst.SystemClock.obtain()
         time.sleep(1) # Wait for the clock to stabilise
         self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, host, port)
@@ -28,6 +30,14 @@ class Clock(object):
     @Pyro4.oneway
     def get_time():
         return self.system_clock.get_time()
+
+    @Pyro4.oneway
+    def get_host():
+        return self.host
+
+    @Pyro4.oneway
+    def get_port():
+        return self.port
 
     def install_pyro_event_callback(self, daemon):
         """

@@ -26,14 +26,13 @@ from socket import gethostname
 @Pyro4.expose
 class Player(object):
 
-    def __init__(self, host, clock_host, clock_port, name=None, card=None):
+    def __init__(self, host, network_clock, name=None, card=None):
         if name:
             self._name = name
         else:
             self._name = gethostname()
         self._host = host
-        self.clock_host = clock_host
-        self.clock_port = int(clock_port)
+        self._network_clock = network_clock
         self._track_uri = None
         self._card = card
         self._callback = None
@@ -124,12 +123,16 @@ class Player(object):
     def play(self, basetime=Gst.CLOCK_TIME_NONE):
 
         #client_clock = self.system_clock
+        # if basetime==Gst.CLOCK_TIME_NONE:
+        #     client_clock = self.system_clock
+        #     basetime = client_clock.get_time()
+
         if basetime==Gst.CLOCK_TIME_NONE:
-            client_clock = self.system_clock
-            basetime = client_clock.get_time()
+            basetime = self._network_clock.get_time()
 
         print("connecting to net clock %s:%s" % (self.clock_host , self.clock_port))
-        client_clock = GstNet.NetClientClock.new('clock', self.clock_host , self.clock_port, basetime)
+        client_clock = GstNet.NetClientClock.new('clock', self._network_clock.get_host(),
+                                                          self._network_clock.get_port(), basetime)
         
         time.sleep(1.0) # Wait for the clock to stabilise
 
@@ -241,8 +244,17 @@ if __name__ == '__main__':
                     sys.exit(1)
                 time.sleep(5)
 
-            register_name = "partyzone.(%s)" % args.name
-            player = Player(args.host, args.clock_host, args.clock_port, name=args.name, card=args.card)
+            clocks = ns.list(prefix="partyzone.clock").items()
+            network_clock = None
+            if clocks:
+                name, uri = clocks[0]
+                network_clock = Pyro4.Proxy(uri)
+                
+            if not network_clock:
+                raise AttributeError("network clock required")
+
+            register_name = "partyzone.players.(%s)" % args.name
+            player = Player(args.host, network_clock=network_clock, name=args.name, card=args.card)
 
             try:
                 existing = ns.lookup(register_name)
@@ -269,7 +281,7 @@ if __name__ == '__main__':
 
             # Example controller
             with Pyro4.locateNS() as ns:
-                player_uris = ns.list(prefix="partyzone")
+                player_uris = ns.list(prefix="partyzone.players")
                 players = []
                 for name, uri in player_uris.items():
                     players.append(Pyro4.Proxy(uri))
@@ -308,7 +320,7 @@ if __name__ == '__main__':
 
             # Example controller
             with Pyro4.locateNS() as ns:
-                players = ns.list(prefix="partyzone")
+                players = ns.list(prefix="partyzone.players")
                 player_objects = []
                 for name, uri in players.items():
                     player_objects.append(Pyro4.Proxy(uri))
