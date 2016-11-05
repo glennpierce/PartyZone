@@ -28,7 +28,7 @@ class Clock(object):
             print("No clock_provider set ?")
 
     @property
-    def time():
+    def system_time():
         return self.system_clock.get_time()
 
     @property
