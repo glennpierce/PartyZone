@@ -175,7 +175,7 @@ if __name__ == '__main__':
     parser.add_argument('--player', type=str, dest='playertype', default='controller',
         help='player type. controller or player')
     
-    parser.add_argument('--clock-host', type=int, dest='clock_host', default='127.0.0.1',
+    parser.add_argument('--clock-host', type=str, dest='clock_host', default='127.0.0.1',
         help='port used for the network clock')
 
     parser.add_argument('--clock-port', type=int, dest='clock_port', default='5342',

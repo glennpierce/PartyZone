@@ -5,7 +5,7 @@ Description=Partyzone netclock
 [Service]
 Type=simple
 Environment=GI_TYPELIB_PATH=/usr/local/lib/girepository-1.0
-ExecStart=/opt/PartyZone/netclock --host 192.168.1.6
+ExecStart=/opt/PartyZone/netclock.py --host 192.168.1.6
 
 [Install]
 WantedBy=multi-user.target
