@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Syncronise music accross machines.')
 
-    parser.add_argument('--player', type=str, dest='playertype', default='controller',
+    parser.add_argument('--player', dest='player', action='store_true',
         help='player type. controller or player')
     
     parser.add_argument('--clock-host', type=str, dest='clock_host', default='127.0.0.1',
@@ -217,7 +217,7 @@ if __name__ == '__main__':
 
     try:
 
-        if args.playertype == "player":
+        if args.player:
 
             if not args.host:
                 raise AttributeError("host parameter required")

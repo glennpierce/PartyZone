@@ -14,6 +14,39 @@ import os
 import os.path
 import socket
 from gi.repository import GObject, Gst, GstNet
+import Pyro4
+
+@Pyro4.expose
+class Clock(object):
+    def __init__(self, host, port):
+        self.system_clock = Gst.SystemClock.obtain()
+        time.sleep(1) # Wait for the clock to stabilise
+        self.clock_provider = GstNet.NetTimeProvider.new(self.system_clock, host, port)
+        if not self.clock_provider:
+            print("No clock_provider set ?")
+
+    @Pyro4.oneway
+    def get_time():
+        return self.system_clock.get_time()
+
+    def install_pyro_event_callback(self, daemon):
+        """
+        Add a callback to the tkinter event loop that is invoked every so often.
+        The callback checks the Pyro sockets for activity and dispatches to the
+        daemon's event process method if needed.
+        """
+        def pyro_event():
+            while True:
+                # for as long as the pyro socket triggers, dispatch events
+                s, _, _ = select.select(daemon.sockets, [], [], 0.01)
+                if s:
+                    daemon.events(s)
+                else:
+                    # no more events, stop the loop, we'll get called again soon anyway
+                    break
+            GObject.timeout_add(20, pyro_event)
+
+        GObject.timeout_add(20, pyro_event)
 
 if __name__ == '__main__':
 
@@ -22,9 +55,11 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Sets up a network clock.')
 
-    parser.add_argument('--port', type=int, dest='port', default='5342', help='port used for the network clock')
+    parser.add_argument('--clock-port', type=int, dest='clockport', default='5342', help='port used for the network clock')
 
     parser.add_argument('--host', type=str, default=default_host, help="Host ip you wish to bind to")
+
+    parser.add_argument('--pyro-port', dest='pyro_port', type=int, default=6562, help="Pyro port you wish to bind to")
 
     args = parser.parse_args()
    
@@ -33,11 +68,24 @@ if __name__ == '__main__':
 
     Gst.init(sys.argv)
 
-    system_clock = Gst.SystemClock.obtain()
-    time.sleep(1) # Wait for the clock to stabilise
-    clock_provider = GstNet.NetTimeProvider.new(system_clock, args.host, args.port)
-    if not clock_provider:
-        print("No clock_provider set ?")
+    clock = clock(args.host, args.clockport)
 
-    loop = GObject.MainLoop()
-    loop.run()
+    register_name = "partyzone.clock.(%s)" % args.name
+
+    try:
+        existing = ns.lookup(register_name)
+        # start the daemon on the previous port
+        daemon = Pyro4.core.Daemon(host=args.host, port=existing.port)
+        # register the object in the daemon with the old objectId
+        daemon.register(clock, objectId=existing.object)
+    except Pyro4.errors.NamingError:
+        # just start a new daemon on a random port
+        daemon = Pyro4.core.Daemon(host=args.host, port=args.pyro_port)
+        # register the object in the daemon and let it get a new objectId
+        # also need to register in name server because it's not there yet.
+        uri = daemon.register(clock)
+        ns.register(register_name, uri)
+        print("Network Clock started.")
+
+    player.install_pyro_event_callback(daemon)
+    GObject.MainLoop().run()
