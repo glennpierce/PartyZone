@@ -146,7 +146,7 @@ class Player(object):
        
         self.playbin.set_state(Gst.State.PLAYING)
 
-        self.basetime = client_clock.get_time()
+        #self.basetime = client_clock.get_time()
 
         #if self._callback:
         #    print("play started callback %s" % (self._callback_uri,))
