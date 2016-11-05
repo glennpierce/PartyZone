@@ -297,9 +297,9 @@ class PlayerCallback(object):
 
     #@Pyro4.callback
     #@Pyro4.oneway
-    def play_started(self, name, is_master):
-        if is_master:
-            print("callback: play started")
+    #def play_started(self, name, is_master):
+    #    if is_master:
+    #        print("callback: play started")
 
     #@Pyro4.callback
     #@Pyro4.oneway
