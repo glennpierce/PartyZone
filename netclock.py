@@ -28,15 +28,15 @@ class Clock(object):
             print("No clock_provider set ?")
 
     @property
-    def get_time():
+    def time():
         return self.system_clock.get_time()
 
     @property
-    def get_host():
+    def host():
         return self.host
 
     @property
-    def get_port():
+    def port():
         return self.port
 
     def install_pyro_event_callback(self, daemon):
