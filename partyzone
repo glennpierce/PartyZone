@@ -122,6 +122,12 @@ class Player(object):
 
     @Pyro4.oneway
     def play(self, basetime=Gst.CLOCK_TIME_NONE):
+
+        #client_clock = self.system_clock
+        if basetime==Gst.CLOCK_TIME_NONE:
+            client_clock = self.system_clock
+            basetime = client_clock.get_time()
+
         print("connecting to net clock %s:%s" % (self.clock_host , self.clock_port))
         client_clock = GstNet.NetClientClock.new('clock', self.clock_host , self.clock_port, basetime)
         
@@ -263,9 +269,9 @@ if __name__ == '__main__':
 
             # Example controller
             with Pyro4.locateNS() as ns:
-                players = ns.list(prefix="partyzone")
+                player_uris = ns.list(prefix="partyzone")
                 players = []
-                for name, uri in players.items():
+                for name, uri in player_uris.items():
                     players.append(Pyro4.Proxy(uri))
                 print("players: " + str(players))
 
