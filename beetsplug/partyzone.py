@@ -298,13 +298,20 @@ class PlayerCallback(object):
     @Pyro4.callback
     @Pyro4.oneway
     def play_started(self, name):
-       if is_master:
-           print("callback: play started")
+       print("callback: play started")
 
     @Pyro4.callback
     @Pyro4.oneway
     def play_done(self, name):
-        if not is_master:
+
+        active_devices = self.application.controller.active_devices
+        if not active_devices:
+            return
+
+        first_active_device = active_devices[0]
+
+        if first_active_device.proxy.name != name:
+            # Just respond to one play done signal for one device
             return
 
         print("callback: play done from %s" % (name,))
@@ -314,7 +321,7 @@ class PlayerCallback(object):
                 uri = self.application.controller.track_id_to_uri(next_track)
                 self.application.controller.play(uri)
 	    else:
-                self.application.controller.reset_queue()
+            self.application.controller.reset_queue()
 
 
 # Plugin hook.
@@ -322,7 +329,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
     class Controller(object):
         
-        def __discover(self, base_url=None, directory = None):
+        def __discover(self, base_url=None, callback_uri=None, directory=None):
             self.queue_mode = False
             self.__queue = []
             self.__queue_iter = iter(self.__queue)
@@ -348,6 +355,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
              
                 for p in self.players:
                     p.proxy.test()
+                    p.proxy.set_callback_uri(callback_uri)
 
         def rediscover(self):
             return self.__discover(self.base_url, self.directory)
@@ -367,6 +375,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
         def get_devices(self):
             return self.players
+
+        def active_devices(self):
+            return [p for p in self.players if p.active]
 
         def get_files(self):
             for root, dirs, files in os.walk(self._directory):
@@ -487,14 +498,14 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app.local_ip = self.get_host()
 
             app.listen(app.port, address="0.0.0.0")
-            app.controller = PartyZoneWebPlugin.Controller(base_url='http://' + unicode(app.local_ip) + ':' + unicode(app.port))
             
             app.player_callback = PlayerCallback(app)
            
             with Pyro4.core.Daemon(app.local_ip, port=8888) as daemon:
                 self.daemon = daemon
                 uri = daemon.register(app.player_callback)
-                app.controller.master.proxy.set_callback_uri(uri)
+                app.controller = PartyZoneWebPlugin.Controller(base_url='http://' + unicode(app.local_ip) + ':' + unicode(app.port),
+                                                               callback_uri = uri)
                 tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
                 tornado.ioloop.IOLoop.instance().start()
 
