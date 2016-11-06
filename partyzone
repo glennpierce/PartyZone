@@ -86,8 +86,10 @@ class Player(object):
             if int(percent) == 100:
                 print('\n')
             sys.stdout.flush()
-        #elif t == Gst.MessageType.STATE_CHANGED:
-        #    print("State Changed")
+        elif t == Gst.MessageType.STATE_CHANGED:
+            if isinstance(message.src, Gst.Pipeline):
+                old_state, new_state, pending_state = message.parse_state_changed()
+                print("Pipeline state changed from %s to %s." % (old_state.value_nick, new_state.value_nick))
         elif t == Gst.MessageType.ERROR:
             self.playbin.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
@@ -272,7 +274,7 @@ if __name__ == '__main__':
                 # also need to register in name server because it's not there yet.
                 uri = daemon.register(player)
                 ns.register(register_name, uri)
-                print("Slave started.")
+                print("Player started.")
 
             # add a Pyro event callback to the gui's mainloop
             player.install_pyro_event_callback(daemon)

@@ -303,7 +303,7 @@ class PlayerCallback(object):
 
     #@Pyro4.callback
     #@Pyro4.oneway
-    def play_done(self, name, is_master):
+    def play_done(self, name):
         if not is_master:
             return
 
@@ -333,28 +333,21 @@ class PartyZoneWebPlugin(BeetsPlugin):
             self.stop()
 
             with Pyro4.locateNS() as ns:
-                players = ns.list(prefix="partyzone")
+                players = ns.list(prefix="partyzone.players")
                 for name, uri in players.items():
-                    if "partyzone.masterplayer" in name:
-                        self.master = Device(uri)
-                    else:
-                        try:
-                            # If we can't call name slave is not there
-                            s = Pyro4.Proxy(uri)
-                            #s.set_callback_uri(uri)
-                            if s.name is not None:
-                                self.slaves.append(Device(uri, s))
-                        except:
-                            pass
+                    try:
+                        # If we can't call name slave is not there
+                        s = Pyro4.Proxy(uri)
+                        #s.set_callback_uri(uri)
+                        if s.name is not None:
+                            self.players.append(Device(uri, s))
+                    except:
+                        pass
 
-                print("master: " + str(self.master))
-                print("slaves: " + str(self.slaves))
-
-                for d in self.slaves:
-                    d.proxy.test()
-
-            #files = self.get_files()
-            #print(files)
+                print("players: " + str(self.players))
+             
+                for p in self.players:
+                    p.proxy.test()
 
         def rediscover(self):
             return self.__discover(self.base_url, self.directory)
@@ -363,34 +356,17 @@ class PartyZoneWebPlugin(BeetsPlugin):
             return self.__discover(base_url, directory)
 
         def set_device_active(self, uri, active):
-            # We can't not send / control master as it sends signals back after song has played etc.
-            # We could send signals from any player I guess and let the contoller decide who to listen
-            # to but it i easier to set master volume to 0. My media is on the machine with master and also this
-            # controller so its not like the master machine can be turned off. 
-            
-            if self.master.uri == uri:     
-                if active:
-                    print("setting master volume to 1.0")
-                    self.master.proxy.set_volume(1.0)
-                else:
-                    print("setting master volume to 0.0")
-                    self.master.proxy.set_volume(0.0)
-                    if not (x for x in self.slaves if x.active == True):
-                        self.master.proxy.stop()  # No active slaves. So may as well stop master playing
-                return
-
-	    try:
-                device = next((x for x in self.slaves if x.uri == uri), None)
+	        try:
+                device = next((x for x in self.players if x.uri == uri), None)
                 device.active = active
-                print("setting slave device %s active to %s" % (device.proxy.name, device.active))
-                device.proxy.stop()
+                print("setting player device %s active to %s" % (device.proxy.name, device.active))
+                if not device.active:
+                    device.proxy.stop()
             except:
                 pass  
 
         def get_devices(self):
-            devices = [self.master]
-            devices.extend(self.slaves)
-            return devices
+            return self.players
 
         def get_files(self):
             for root, dirs, files in os.walk(self._directory):
@@ -402,30 +378,20 @@ class PartyZoneWebPlugin(BeetsPlugin):
         def track_id_to_uri(self, track_id):
             return self.base_url + '/trackfile/' + unicode(track_id)
 
-        #def play_done(self):
-        #    print("callback: play done")
-
         def play(self, uri):
-            print(str(self.master))
-            #print("setting track to master " + self.master)
-            self.master.proxy.track = uri
-            print("setting track to %s" % (uri,))
-            self.master.proxy.play()
+            p = self.players[0]
+            p.proxy.track = uri
+            print("setting basetime for %s to None" % (p.proxy.name,))
+            basetime = p.proxy.play(None)
 
-            print("playing slaves")
-            print(str(self.slaves))
-            for slave in self.slaves:
-                print(slave.proxy.name)
-                if slave.active:
-                    slave.proxy.track = uri
-                    slave.proxy.play()
+            for p in players[1:]:
+                p.proxy.track = filepath
+                print("setting basetime for %s to %s" % (p.proxy.name, str(basetime)))
+                p.proxy.play(basetime)    
 
         def stop(self):
-            for slave in self.slaves:
-                slave.proxy.stop()
-
-            if self.master:
-                self.master.proxy.stop()
+            for p in self.players:
+                p.proxy.stop()
 
         def add_to_queue(self, url):
             self.__queue.append(url)
