@@ -304,7 +304,7 @@ class PlayerCallback(object):
     @Pyro4.oneway
     def play_done(self, name):
 
-        active_devices = self.application.controller.active_devices
+        active_devices = self.application.controller.active_devices()
         if not active_devices:
             return
 
@@ -321,20 +321,21 @@ class PlayerCallback(object):
                 uri = self.application.controller.track_id_to_uri(next_track)
                 self.application.controller.play(uri)
 	    else:
-            self.application.controller.reset_queue()
+                self.application.controller.reset_queue()
 
 
 # Plugin hook.
 class PartyZoneWebPlugin(BeetsPlugin):
 
     class Controller(object):
-        
+ 
         def __discover(self, base_url=None, callback_uri=None, directory=None):
             self.queue_mode = False
             self.__queue = []
             self.__queue_iter = iter(self.__queue)
             self.base_url = base_url
             self.directory = directory
+            self.callback_uri = callback_uri
             self.players = []
 
             self.stop()
@@ -358,13 +359,13 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     p.proxy.set_callback_uri(callback_uri)
 
         def rediscover(self):
-            return self.__discover(self.base_url, self.directory)
+            return self.__discover(self.base_url, self.callback_uri, self.directory)
 
-        def __init__(self, base_url=None, directory = None):
-            return self.__discover(base_url, directory)
+        def __init__(self, base_url=None, callback_uri=None, directory=None):
+            return self.__discover(base_url, callback_uri=callback_uri, directory=directory)
 
         def set_device_active(self, uri, active):
-	        try:
+	    try:
                 device = next((x for x in self.players if x.uri == uri), None)
                 device.active = active
                 print("setting player device %s active to %s" % (device.proxy.name, device.active))
@@ -395,8 +396,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             print("setting basetime for %s to None" % (p.proxy.name,))
             basetime = p.proxy.play(None)
 
-            for p in players[1:]:
-                p.proxy.track = filepath
+            for p in self.players[1:]:
+                p.proxy.track = uri
                 print("setting basetime for %s to %s" % (p.proxy.name, str(basetime)))
                 p.proxy.play(basetime)    
 
