@@ -90,6 +90,15 @@ class Player(object):
             if isinstance(message.src, Gst.Pipeline):
                 old_state, new_state, pending_state = message.parse_state_changed()
                 print("Pipeline state changed from %s to %s." % (old_state.value_nick, new_state.value_nick))
+
+                # Pipeline state changed from null to ready.
+                # Pipeline state changed from ready to paused.
+                # Pipeline state changed from paused to playing.
+
+                if new_state.value_nick == "playing":
+                    if self._callback:
+                        self._callback.play_started(self.name)    # invoke the callback object
+
         elif t == Gst.MessageType.ERROR:
             self.playbin.set_state(Gst.State.NULL)
             err, debug = message.parse_error()
@@ -121,13 +130,7 @@ class Player(object):
     def test(self):
         print("oneway test call")
 
-    #@Pyro4.oneway
     def play(self, basetime=None):
-
-        #client_clock = self.system_clock
-        # if basetime==Gst.CLOCK_TIME_NONE:
-        #     client_clock = self.system_clock
-        #     basetime = client_clock.get_time()
 
         if not basetime:
             basetime = self._network_clock.system_time
@@ -148,11 +151,6 @@ class Player(object):
        
         self.playbin.set_state(Gst.State.PLAYING)
 
-        #self.basetime = client_clock.get_time()
-
-        #if self._callback:
-        #    print("play started callback %s" % (self._callback_uri,))
-        #    self._callback.play_started(self.name)    # invoke the callback object
         return basetime
 
     def install_pyro_event_callback(self, daemon):
