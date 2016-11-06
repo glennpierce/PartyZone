@@ -370,6 +370,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 print("setting player device %s active to %s" % (device.proxy.name, device.active))
                 if not device.active:
                     device.proxy.stop()
+                else:
+                    # Check whether other devices are playing if so play the newly activated one
+
             except:
                 pass  
 
@@ -378,6 +381,9 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
         def active_devices(self):
             return [p for p in self.players if p.active]
+
+        def playing_devices(self):
+            return [p.proxy.state() for p in self.active_devices]
 
         def get_files(self):
             for root, dirs, files in os.walk(self._directory):
@@ -398,7 +404,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             for p in players[1:]:
                 p.proxy.track = filepath
                 print("setting basetime for %s to %s" % (p.proxy.name, str(basetime)))
-                p.proxy.play(basetime)    
+                p.proxy.play(basetime)
 
         def stop(self):
             for p in self.players:
