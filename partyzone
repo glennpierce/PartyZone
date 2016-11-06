@@ -130,6 +130,9 @@ class Player(object):
     def test(self):
         print("oneway test call")
 
+    def is_playing(self):
+        return self.state() == Gst.State.PLAYING
+
     def play(self, basetime=None):
 
         if not basetime:
