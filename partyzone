@@ -254,8 +254,9 @@ if __name__ == '__main__':
 
             network_clock = find_network_clock(ns)
                 
-            if not network_clock:
-                raise AttributeError("network clock required")
+            while not network_clock:
+                network_clock = find_network_clock(ns)
+		time.sleep(2)
 
             register_name = "partyzone.players.(%s)" % args.name
             player = Player(args.host, network_clock=network_clock, name=args.name, card=args.card)
