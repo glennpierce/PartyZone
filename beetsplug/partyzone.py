@@ -52,10 +52,10 @@ class BaseHandler(tornado.web.RequestHandler):
             exception = kwargs['exc_info'][1]
             print(exception)
             print(traceback.format_exc())
-        return super(send_error, self).send_error(status_code, kwargs)
+        return super(BaseHandler, self).send_error(status_code=status_code, **kwargs)
 
     def write_error(self, status_code, **kwargs):
-        print ('In get_error_html. status_code: ' % (status_code,))
+        print ('In get_error_html. status_code: %s' % (status_code,))
         if status_code in [403, 404, 500, 503]:
             self.write('Error %s' % status_code)
         else:
@@ -91,11 +91,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class TrackFileHandler(BaseHandler):
     def get(self, param1):
-        item_id = param1
-        item = self.application.lib.get_item(item_id)
+        track_id = param1
+        item = self.application.lib.get_item(int(track_id))
+        uri = item['path']
+        print("TrackFileHandler: track_id %s  uri %s" % (track_id, uri))
         #'format': u'MP3',
         self.set_header('Content-type', 'audio/mpeg')
-        with open(item.path, 'rb') as f:
+        with open(uri, 'rb') as f:
             data = f.read()
             self.write(data)
         self.finish()
@@ -146,6 +148,7 @@ class SetPlayersActiveHandler(BaseHandler):
         #              {u'selected': True, u'id': u'PYRO:obj_524ad7477ca74bd8a5bdeac0c3f6e989@192.168.1.128:36172'}]}
         #{u'devices': [{u'selected': True, u'id': u'PYRO:obj_e650cbd7dfd34570ad2c12134c5b2d2f@192.168.1.6:50994'}]}
         for device in data['devices']:
+            print("set_device_active %s to %s" % (device['id'], device['selected']))
             self.application.controller.set_device_active(device['id'], device['selected'])
 
         self.write({'return': 'ok'})
@@ -295,16 +298,26 @@ class PlayerCallback(object):
     def __init__(self, app):
         self.application = app
 
-    #@Pyro4.callback
-    #@Pyro4.oneway
-    def play_started(self, name, is_master):
-        if is_master:
-            print("callback: play started")
+    @Pyro4.callback
+    @Pyro4.oneway
+    def play_started(self, name):
+       print("callback: play started")
 
-    #@Pyro4.callback
-    #@Pyro4.oneway
-    def play_done(self, name, is_master):
-        if not is_master:
+    @Pyro4.callback
+    @Pyro4.oneway
+    def play_done(self, name):
+
+        active_devices = self.application.controller.active_devices()
+
+        print("play_done: name : %s active_devices: %s" % (name, str(active_devices)))
+
+        if not active_devices:
+            return
+
+        first_active_device = active_devices[0]
+
+        if first_active_device.proxy.name != name:
+            # Just respond to one play done signal for one device
             return
 
         print("callback: play done from %s" % (name,))
@@ -321,79 +334,68 @@ class PlayerCallback(object):
 class PartyZoneWebPlugin(BeetsPlugin):
 
     class Controller(object):
-        
-        def __discover(self, base_url=None, directory = None):
+ 
+        def __discover(self, base_url=None, callback_uri=None, directory=None):
             self.queue_mode = False
             self.__queue = []
             self.__queue_iter = iter(self.__queue)
             self.base_url = base_url
             self.directory = directory
-            self.master = None
-            self.slaves = []
+            self.callback_uri = callback_uri
+            self.players = []
 
             self.stop()
 
             with Pyro4.locateNS() as ns:
-                players = ns.list(prefix="partyzone")
+                players = ns.list(prefix="partyzone.players")
                 for name, uri in players.items():
-                    if "partyzone.masterplayer" in name:
-                        self.master = Device(uri)
-                    else:
-                        try:
-                            # If we can't call name slave is not there
-                            s = Pyro4.Proxy(uri)
-                            #s.set_callback_uri(uri)
-                            if s.name is not None:
-                                self.slaves.append(Device(uri, s))
-                        except:
-                            pass
+                    try:
+                        # If we can't call name slave is not there
+                        s = Pyro4.Proxy(uri)
+                        #s.set_callback_uri(uri)
+                        if s.name is not None:
+                            self.players.append(Device(uri, s))
+                    except:
+                        pass
 
-                print("master: " + str(self.master))
-                print("slaves: " + str(self.slaves))
-
-                for d in self.slaves:
-                    d.proxy.test()
-
-            #files = self.get_files()
-            #print(files)
+                print("players: " + str(self.players))
+             
+                for p in self.players:
+                    p.proxy.test()
+                    p.proxy.set_callback_uri(callback_uri)
 
         def rediscover(self):
-            return self.__discover(self.base_url, self.directory)
+            return self.__discover(self.base_url, self.callback_uri, self.directory)
 
-        def __init__(self, base_url=None, directory = None):
-            return self.__discover(base_url, directory)
+        def __init__(self, base_url=None, callback_uri=None, directory=None):
+            return self.__discover(base_url, callback_uri=callback_uri, directory=directory)
 
         def set_device_active(self, uri, active):
-            # We can't not send / control master as it sends signals back after song has played etc.
-            # We could send signals from any player I guess and let the contoller decide who to listen
-            # to but it i easier to set master volume to 0. My media is on the machine with master and also this
-            # controller so its not like the master machine can be turned off. 
-            
-            if self.master.uri == uri:     
-                if active:
-                    print("setting master volume to 1.0")
-                    self.master.proxy.set_volume(1.0)
-                else:
-                    print("setting master volume to 0.0")
-                    self.master.proxy.set_volume(0.0)
-                    if not (x for x in self.slaves if x.active == True):
-                        self.master.proxy.stop()  # No active slaves. So may as well stop master playing
-                #self.master.proxy.stop()
-                return
-
-	    try:
-                device = next((x for x in self.slaves if x.uri == uri), None)
+            try:
+                is_playing = any(self.playing_devices())
+                device = next((x for x in self.players if x.uri == uri), None)
                 device.active = active
-                print("setting slave device %s active to %s" % (device.proxy.name, device.active))
+                print("setting player device %s active to %s" % (device.proxy.name, device.active))
                 if not device.active:
-		    device.proxy.stop()
-            except:
+                    device.proxy.stop()
+                else:
+                    # Check whether other devices are playing if so play the newly activated one
+                    if is_playing:
+                        device.proxy.play()
+            except Exception as ex:
+                print(str(ex))
+                print(traceback.format_exc())
                 pass  
 
         def get_devices(self):
-            devices = [self.master]
-            devices.extend(self.slaves)
-            return devices
+            return self.players
+
+        def active_devices(self):
+            print("players: %s" % (self.players,))
+            return [p for p in self.players if p.active]
+
+        def playing_devices(self):
+            return [p.proxy.is_playing() for p in self.active_devices()]
 
         def get_files(self):
             for root, dirs, files in os.walk(self._directory):
@@ -405,30 +407,20 @@ class PartyZoneWebPlugin(BeetsPlugin):
         def track_id_to_uri(self, track_id):
             return self.base_url + '/trackfile/' + unicode(track_id)
 
-        #def play_done(self):
-        #    print("callback: play done")
-
         def play(self, uri):
-            print(str(self.master))
-            #print("setting track to master " + self.master)
-            self.master.proxy.track = uri
-            print("setting track to %s" % (uri,))
-            self.master.proxy.play()
+            p = self.players[0]
+            p.proxy.track = uri
+            print("setting basetime for %s to None" % (p.proxy.name,))
+            basetime = p.proxy.play(None)
 
-            print("playing slaves")
-            print(str(self.slaves))
-            for slave in self.slaves:
-                print(slave.proxy.name)
-                if slave.active:
-                    slave.proxy.track = uri
-                    slave.proxy.play()
+            for p in self.players[1:]:
+                p.proxy.track = uri
+                print("setting basetime for %s to %s" % (p.proxy.name, str(basetime)))
+                p.proxy.play(basetime)
 
         def stop(self):
-            for slave in self.slaves:
-                slave.proxy.stop()
-
-            if self.master:
-                self.master.proxy.stop()
+            for p in self.players:
+                p.proxy.stop()
 
         def add_to_queue(self, url):
             self.__queue.append(url)
@@ -524,14 +516,14 @@ class PartyZoneWebPlugin(BeetsPlugin):
             app.local_ip = self.get_host()
 
             app.listen(app.port, address="0.0.0.0")
-            app.controller = PartyZoneWebPlugin.Controller(base_url='http://' + unicode(app.local_ip) + ':' + unicode(app.port))
             
             app.player_callback = PlayerCallback(app)
            
             with Pyro4.core.Daemon(app.local_ip, port=8888) as daemon:
                 self.daemon = daemon
                 uri = daemon.register(app.player_callback)
-                app.controller.master.proxy.set_callback_uri(uri)
+                app.controller = PartyZoneWebPlugin.Controller(base_url='http://' + unicode(app.local_ip) + ':' + unicode(app.port),
+                                                               callback_uri = uri)
                 tornado.ioloop.PeriodicCallback(self.pyro_event, 20).start()
                 tornado.ioloop.IOLoop.instance().start()
 

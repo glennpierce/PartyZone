@@ -63,13 +63,15 @@ export class Tracks {
     this.queue.addToQueue(track);
   }
 
+  playTrack(event: any, track: ITrack) {
+    this.allplay.stop();
+    this.allplay.setupQueueMode();
+    this.allplay.playTrack(track);
+    return false;
+  }
+  
   gotoTrackEdit(event: any, track: ITrack) {
     this.router.navigateToRoute('track-edit', { id: track.id });
     event.preventDefault();
-  }
-
-  playTrack(event: any, track: ITrack) {
-    this.allplay.playTrack(track);
-  	return true;
   }
 }

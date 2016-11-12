@@ -1,12 +1,12 @@
 [Unit]
 Requires=pyro4-nameserver.service
-After=pyro4-nameserver.service
+After=pyro4-nameserver.service partyzone-netclock.service
 Description=Partyzone master player
 
 [Service]
 Type=simple
 Environment=GI_TYPELIB_PATH=/usr/local/lib/girepository-1.0
-ExecStart=/opt/PartyZone/partyzone --playertype master --name "Media Centre" --host 192.168.1.6
+ExecStart=/opt/PartyZone/partyzone --player --name "Media Centre" --host 192.168.1.6 --card hw:2,0
 
 [Install]
 WantedBy=multi-user.target
