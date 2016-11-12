@@ -14,7 +14,7 @@ export class App {
   }
 
   configureRouter(config: RouterConfiguration, router: Router) {
-    config.title = 'AllPlay';
+    config.title = 'Partyzone';
     config.map([
       { route: ['', 'tracks'],  name: 'tracks',   moduleId: './tracks',   nav: true, title: 'Tracks' },
       { route: 'speakers',  name: 'speakers',   moduleId: './speakers',   nav: true, title: 'Speakers' },

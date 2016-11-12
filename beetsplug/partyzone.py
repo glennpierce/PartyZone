@@ -52,10 +52,10 @@ class BaseHandler(tornado.web.RequestHandler):
             exception = kwargs['exc_info'][1]
             print(exception)
             print(traceback.format_exc())
-        return super(send_error, self).send_error(status_code, kwargs)
+        return super(BaseHandler, self).send_error(status_code=status_code, **kwargs)
 
     def write_error(self, status_code, **kwargs):
-        print ('In get_error_html. status_code: ' % (status_code,))
+        print ('In get_error_html. status_code: %s' % (status_code,))
         if status_code in [403, 404, 500, 503]:
             self.write('Error %s' % status_code)
         else:
@@ -91,11 +91,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class TrackFileHandler(BaseHandler):
     def get(self, param1):
-        item_id = param1
-        item = self.application.lib.get_item(item_id)
+        track_id = param1
+        item = self.application.lib.get_item(int(track_id))
+        uri = item['path']
+        print("TrackFileHandler: track_id %s  uri %s" % (track_id, uri))
         #'format': u'MP3',
         self.set_header('Content-type', 'audio/mpeg')
-        with open(item.path, 'rb') as f:
+        with open(uri, 'rb') as f:
             data = f.read()
             self.write(data)
         self.finish()
