@@ -313,6 +313,19 @@ if __name__ == '__main__':
 
         elif args.play:
 
+            ns = None
+
+            while True:
+                try:
+                    ns = Pyro4.naming.locateNS()
+                    break
+                except Pyro4.errors.NamingError:
+                    print("Can't find Pyro nameserver!")
+                except ex:
+                    print(str(ex))
+                    sys.exit(1)
+                time.sleep(5)
+
             network_clock = find_network_clock(ns)
                 
             if not network_clock:
