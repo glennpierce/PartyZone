@@ -148,6 +148,7 @@ class SetPlayersActiveHandler(BaseHandler):
         #              {u'selected': True, u'id': u'PYRO:obj_524ad7477ca74bd8a5bdeac0c3f6e989@192.168.1.128:36172'}]}
         #{u'devices': [{u'selected': True, u'id': u'PYRO:obj_e650cbd7dfd34570ad2c12134c5b2d2f@192.168.1.6:50994'}]}
         for device in data['devices']:
+            print("set_device_active %s to %s" % (device['id'], device['selected']))
             self.application.controller.set_device_active(device['id'], device['selected'])
 
         self.write({'return': 'ok'})
@@ -307,6 +308,9 @@ class PlayerCallback(object):
     def play_done(self, name):
 
         active_devices = self.application.controller.active_devices()
+
+        print("play_done: name : %s active_devices: %s" % (name, str(active_devices)))
+
         if not active_devices:
             return
 
@@ -378,17 +382,20 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     # Check whether other devices are playing if so play the newly activated one
                     if is_playing:
                         device.proxy.play()
-            except:
+            except Exception as ex:
+                print(str(ex))
+                print(traceback.format_exc())
                 pass  
 
         def get_devices(self):
             return self.players
 
         def active_devices(self):
+            print("players: %s" % (self.players,))
             return [p for p in self.players if p.active]
 
         def playing_devices(self):
-            return [p.proxy.is_playing() for p in self.active_devices]
+            return [p.proxy.is_playing() for p in self.active_devices()]
 
         def get_files(self):
             for root, dirs, files in os.walk(self._directory):
