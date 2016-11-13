@@ -1,0 +1,35 @@
+<template>
+  
+  <require from="materialize-css/bin/materialize.css"></require>
+  <require from="./tracks.css"></require>
+
+  <section>
+    <h2>${heading}</h2>
+
+    <md-input md-label="search tracks" md-value.bind="searchText" change.delegate="onSearchText($event)"></md-input>
+    <br><br>
+
+    <div class="row au-stagger" repeat.for="track of pageTracks">
+          <div class="card-container">
+            <div class="list-group-item">
+              <div>
+                <h4 class="list-group-item-heading">${track.title}</h4>
+                  <p class="list-group-item-text">Album ${track.album}</p>
+                  <p class="list-group-item-text">Artist ${track.artist}</p>
+              </div>
+              <a href click.delegate="gotoTrackEdit($event, track)">Edit Metadata</a>
+              <br>
+              <a href click.delegate="addToQueue($event, track)">Add to queue</a>
+              <br>
+              <a href click.delegate="playTrack($event, track)">Play</a>
+            </div>
+          </div>
+    </div>
+
+    <md-pagination md-show-first-last.two-way="showFirstLastPages"
+                   md-visible-page-links.two-way="visiblePageLinks"
+                   md-on-page-changed.delegate="onPageChanged($event)" md-pages.bind="numberOfPages" 
+        md-active-page.bind="activePage" md-visible-page-links="20"></md-pagination>
+   
+  </section>
+</template>

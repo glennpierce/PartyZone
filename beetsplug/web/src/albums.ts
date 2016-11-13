@@ -6,8 +6,8 @@ import {Queue} from './queue';
 
 
 @inject(AllPlay, Queue, Router)
-export class Tracks {
-  heading : string = 'Tracks';
+export class Albums {
+  heading : string = 'Albums';
   tracks : Array<ITrack> = [];
   pageTracks : Array<ITrack> = [];
   activePage : number = 1;
