@@ -143,7 +143,7 @@ class SetPlayersActiveHandler(BaseHandler):
     def post(self):
         print("SetPlayersActiveHandler")
         data = self.json_args
-        print(data)
+        #print(data)
         #print(data)
         #{u'devices': [{u'selected': True, u'id': u'PYRO:obj_9028e59851cf4af5b4206363e3c8a2b4@192.168.1.6:39946'}, 
         #              {u'selected': True, u'id': u'PYRO:obj_524ad7477ca74bd8a5bdeac0c3f6e989@192.168.1.128:36172'}]}
@@ -375,6 +375,10 @@ class PartyZoneWebPlugin(BeetsPlugin):
         def set_device_active(self, uri, active):
             try:
                 device = next((x for x in self.players if x.uri == uri), None)
+
+                if active == device.active:
+                    return
+
                 device.active = active
                 
                 print("setting player device %s active to %s\n" % (device.proxy.name, device.active))
