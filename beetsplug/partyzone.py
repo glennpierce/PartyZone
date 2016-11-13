@@ -90,6 +90,7 @@ class BaseHandler(tornado.web.RequestHandler):
         
 
 class TrackFileHandler(BaseHandler):
+    "Returns an audio file as a stream for gstreamer"
     def get(self, param1):
         track_id = param1
         item = self.application.lib.get_item(int(track_id))
@@ -301,7 +302,8 @@ class PlayerCallback(object):
     @Pyro4.callback
     @Pyro4.oneway
     def play_started(self, name):
-       print("callback: play started")
+        pass
+        #print("callback: play started")
 
     @Pyro4.callback
     @Pyro4.oneway
@@ -374,7 +376,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             try:
                 device = next((x for x in self.players if x.uri == uri), None)
                 device.active = active
-                print("setting player device %s active to %s" % (device.proxy.name, device.active))
+                
+                print("setting player device %s active to %s\n" % (device.proxy.name, device.active))
                 if not device.active:
                     print("device set to active false. stopping play")
                     device.proxy.stop()
@@ -384,9 +387,44 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     print("playing devices " + str(playing_devices))
                     if self.any_playing_devices():
                         if not device.proxy.is_playing():
-                            print("other devices playing so playing device " + device.proxy.name)
-                            basetime = playing_devices[0].proxy.get_basetime()
+                            other_device = playing_devices[0].proxy
+                            print("other device playing " + other_device.name)
+                            device.proxy.stop() 
+		 	    print("setting track playing to other playing track %s" % (other_device.track,))
+                            device.proxy.track = other_device.track 
+                            basetime = other_device.get_basetime()
+                            print("got basetime %s from other playing player" % (basetime,))
                             device.proxy.play(basetime)
+                        else:
+                            print("no other devices playing")
+
+                #print("setting player device %s active to %s\n" % (device.proxy.name, device.active))
+                #if not device.active:
+                #    print("device set to active false. pausing play")
+                #    device.proxy.pause(True)
+                #else:
+
+                #    if device.proxy.is_paused():
+                #        device.proxy.pause(False)
+                #        return 
+
+		#    # Ok player has not been previously paused we need to try to play the stream but 
+                #    # at the same point as any other playing devices
+                #    # Check whether other devices are playing if so play the newly activated one
+                #    playing_devices = self.playing_devices()
+                #    print("playing devices " + str(playing_devices))
+                #    if self.any_playing_devices():
+                #        if not device.proxy.is_playing():
+                #            other_device = playing_devices[0].proxy
+                #            print("other device playing " + other_device.name)
+                #            print("setting track playing to other playing track %s" % (other_device.track,))
+                #            device.proxy.track = other_device.track
+                #            basetime = other_device.get_basetime()
+                #            print("got basetime %s from other playing player" % (basetime,))
+                #            device.proxy.play(basetime)
+                #        else:
+                #            print("no other devices playing")
+
             except Exception as ex:
                 print(str(ex))
                 print(traceback.format_exc())
@@ -425,6 +463,10 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 p.proxy.track = uri
                 print("setting basetime for %s to %s" % (p.proxy.name, str(basetime)))
                 p.proxy.play(basetime)
+
+        def pause(self):
+            "Pause all players"
+            pass
 
         def stop(self):
             for p in self.players:

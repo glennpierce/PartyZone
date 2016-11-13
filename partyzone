@@ -152,10 +152,21 @@ class Player(object):
 
         print("setting uri to %s" % (self.track,))
         self.playbin.set_property('uri', self.track)
-       
+      
+        print("playbin.set_state to playing") 
         self.playbin.set_state(Gst.State.PLAYING)
-
+        print("returning basetime")
+       
         return basetime
+
+    def is_paused(self):
+        return self.state() == Gst.State.PAUSED
+
+    def pause(self, state):
+        if state:
+            self.playbin.set_state(Gst.State.PAUSED)
+        else:
+            self.playbin.set_state(Gst.State.PLAYING)
 
     def install_pyro_event_callback(self, daemon):
         """
