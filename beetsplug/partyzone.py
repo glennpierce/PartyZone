@@ -19,8 +19,8 @@ import traceback
 import codecs
 import ujson as json
 
-os.environ["PYRO_LOGFILE"] = "pyro.log"
-os.environ["PYRO_LOGLEVEL"] = "DEBUG"
+#os.environ["PYRO_LOGFILE"] = "pyro.log"
+#os.environ["PYRO_LOGLEVEL"] = "DEBUG"
 
 import Pyro4
 from beets.plugins import BeetsPlugin
@@ -372,16 +372,21 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
         def set_device_active(self, uri, active):
             try:
-                is_playing = any(self.playing_devices())
                 device = next((x for x in self.players if x.uri == uri), None)
                 device.active = active
                 print("setting player device %s active to %s" % (device.proxy.name, device.active))
                 if not device.active:
+                    print("device set to active false. stopping play")
                     device.proxy.stop()
                 else:
                     # Check whether other devices are playing if so play the newly activated one
+                    playing_devices = self.playing_devices()
+                    is_playing = any(playing_devices)
                     if is_playing:
-                        device.proxy.play()
+                        print("other devices playing so play device" + device.proxy.name)
+                        if not device.proxy.is_playing():
+                            basetime = playing_devices[].get_basetime()
+                            device.proxy.play(basetime)
             except Exception as ex:
                 print(str(ex))
                 print(traceback.format_exc())

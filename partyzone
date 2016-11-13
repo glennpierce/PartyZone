@@ -148,6 +148,7 @@ class Player(object):
         self.playbin.set_start_time(Gst.CLOCK_TIME_NONE)
         self.playbin.set_base_time(basetime)    
         print("setting basetime to %s" % (basetime,))
+        self.basetime = basetime
 
         print("setting uri to %s" % (self.track,))
         self.playbin.set_property('uri', self.track)
