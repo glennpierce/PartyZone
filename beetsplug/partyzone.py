@@ -381,11 +381,11 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 else:
                     # Check whether other devices are playing if so play the newly activated one
                     playing_devices = self.playing_devices()
-                    is_playing = any(playing_devices)
-                    if is_playing:
-                        print("other devices playing so play device" + device.proxy.name)
+                    print("playing devices " + str(playing_devices))
+                    if self.any_playing_devices():
                         if not device.proxy.is_playing():
-                            basetime = playing_devices[].get_basetime()
+                            print("other devices playing so playing device " + device.proxy.name)
+                            basetime = playing_devices[0].proxy.get_basetime()
                             device.proxy.play(basetime)
             except Exception as ex:
                 print(str(ex))
@@ -400,7 +400,10 @@ class PartyZoneWebPlugin(BeetsPlugin):
             return [p for p in self.players if p.active]
 
         def playing_devices(self):
-            return [p.proxy.is_playing() for p in self.active_devices()]
+            return [p for p in self.active_devices() if p.proxy.is_playing()]
+
+        def any_playing_devices(self):
+            return any([p.proxy.is_playing() for p in self.active_devices()])
 
         def get_files(self):
             for root, dirs, files in os.walk(self._directory):
