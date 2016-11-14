@@ -327,9 +327,12 @@ class PlayerCallback(object):
             next_track = self.application.controller.next_track()
             if next_track:
                 uri = self.application.controller.track_id_to_uri(next_track)
+                print("playing next track " + uri)
                 self.application.controller.play(uri)
 	    else:
                 self.application.controller.reset_queue()
+        else:
+            print("not in queue mode. stopping")
 
 
 # Plugin hook.
