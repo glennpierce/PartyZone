@@ -17,6 +17,7 @@ export class App {
     config.title = 'Partyzone';
     config.map([
       { route: ['', 'tracks'],  name: 'tracks',   moduleId: './tracks',   nav: true, title: 'Tracks' },
+      { route: 'albums',  name: 'albums',   moduleId: './albums',   nav: true, title: 'Albums' },
       { route: 'speakers',  name: 'speakers',   moduleId: './speakers',   nav: true, title: 'Speakers' },
       { route: 'queue',  name: 'queue',   moduleId: './queue',   nav: true, title: 'Queue' },
       { route: 'track-edit/:id', name: 'track-edit',   moduleId: './track-edit',   nav: false, title: 'Track Edit' },
