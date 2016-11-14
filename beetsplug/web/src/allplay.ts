@@ -34,6 +34,21 @@ export class Speaker {
   }
 }
 
+export class QueueContainer {
+    queued_tracks : Array<ITrack>;
+
+    constructor() {
+        this.resetQueue();
+    }
+
+    resetQueue() {
+        this.queued_tracks = new Array<ITrack>();
+    }
+
+    addToQueue(track : ITrack) {
+        this.queued_tracks.push(track);
+    }
+}
 
 @inject(Lazy.of(HttpClient))
 export class AllPlay {
@@ -111,12 +126,13 @@ export class AllPlay {
       return this.tracks.filter(track => track.id === +id)[0];
   }
 
-  async addToQueue(track: ITrack) {
-    let parameters = { 'track_id': track.id };
+  private async addToQueue(track: ITrack) {
+    let parameters = { 'track_id': track.id, 'path': track.path };
     await this.http.fetch('add_to_queue', {
         method: 'post',
         body: JSON.stringify(parameters)
     });
+    console.log("adding to queue " + track.path);
   }
 
   async setupQueueMode(mode : boolean) {
@@ -129,17 +145,10 @@ export class AllPlay {
     });
   }
 
-  async saveQueue(name : string, tracks : Map<number, ITrack>) {
+  async saveQueue(name : string, tracks : Array<ITrack>) {
     await fetch;
 
-    let track_array : ITrack[] = []
-    let parameters = {'name': name };
-  
-    for (let t of tracks.values()) {
-        track_array.push(t);
-    }
- 
-    parameters['tracks'] = track_array;
+    let parameters = {'name' : name, 'tracks' : tracks}
 
     this.http.fetch('save_playlist', {
         method: 'post',
@@ -194,15 +203,19 @@ export class AllPlay {
     })
     .catch(this.handleErrors) 
     {
-      let h=6;
     };
   }
 
-  async play_queue(): Promise<void> {
+  async play_queue(queueContainer : QueueContainer): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
     this.setupQueueMode(true);
+
+    // Send queued items
+    for (let i = 0; i < queueContainer.queued_tracks.length; i++) {
+        await this.addToQueue(queueContainer.queued_tracks[i]);
+    } 
 
     this.http.fetch('playqueue', {
         method: 'post'

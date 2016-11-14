@@ -1,15 +1,15 @@
 import {Aurelia} from 'aurelia-framework';
 import {Router, RouterConfiguration} from 'aurelia-router';
 import {inject} from 'aurelia-framework';
-import {AllPlay} from './allplay';
+import {AllPlay, QueueContainer} from './allplay';
 import {Speakers} from './speakers';
 //import {MdRange} from 'aurelia-materialize-bridge';
 
-@inject(AllPlay, Speakers)
+@inject(AllPlay, QueueContainer, Speakers)
 export class App {
   router: Router;
 
-  constructor(private allplay: AllPlay, private speakers: Speakers) {
+  constructor(private allplay: AllPlay, private queueContainer: QueueContainer, private speakers: Speakers) {
       //speakers.setup();
   }
 

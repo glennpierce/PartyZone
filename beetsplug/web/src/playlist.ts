@@ -1,17 +1,16 @@
 import {Aurelia, inject} from 'aurelia-framework';
 import {DialogController} from 'aurelia-dialog';
-import {AllPlay, ITrack} from './allplay';
-import {Queue, QueueContainer} from './queue';
+import {AllPlay, ITrack, QueueContainer} from './allplay';
+import {Queue} from './queue';
 
 
-@inject(AllPlay, DialogController)
+@inject(AllPlay, QueueContainer, DialogController)
 export class Playlist {
   private playlists : string[];
   private queue : Queue;
   private choosePlaylist : boolean = true;
 
-  constructor(private allplay: AllPlay, private controller : DialogController){
-
+  constructor(private allplay: AllPlay, private queueContainer: QueueContainer, private controller : DialogController){
   }
 
   async activate(state){
@@ -29,12 +28,11 @@ export class Playlist {
 
     let tracks = await this.allplay.getPlaylist(selectedPlaylist.name);
 
-    console.log(tracks);
-
     this.queue.resetQueue();
 
     for (let track of tracks) {
-        this.queue.addToQueue(track);
+        console.log("in loop: " + track.path);
+        await this.queue.addToQueue(track);
     }
 
     self.controller.ok();

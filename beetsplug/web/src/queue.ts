@@ -2,46 +2,19 @@ import {inject, Lazy, autoinject} from 'aurelia-framework';
 import {DialogService} from 'aurelia-dialog';
 import {HttpClient} from 'aurelia-fetch-client';
 import {Router} from 'aurelia-router';
-import {AllPlay, ITrack} from './allplay';
+import {AllPlay, ITrack, QueueContainer} from './allplay';
 import {Tracks} from './tracks';
 import {Playlist} from './playlist';
 
 // polyfill fetch client conditionally
 const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
 
-function mapToJson(map) : string {
-    return JSON.stringify(Array.from(map.entries()));
-    //return "";
-}
 
-function jsonToMap(jsonStr : string) {
-    let json = JSON.parse(jsonStr);
-    return new Map<number, ITrack>(json);
-    //return new Map();
-}
-
-export type QueueContainer = Map<number, ITrack>;
-
-@inject(AllPlay, DialogService, Router)
+@inject(AllPlay, QueueContainer, DialogService, Router)
 export class Queue {
   heading: string = 'Queue';
-  queued_tracks: QueueContainer = new Map<number, ITrack>();
 
-  constructor(private allplay: AllPlay, private dialogService: DialogService, private router: Router) {
-
-  }
-
-  activate(): Promise<void> {
-    this.queued_tracks = jsonToMap(localStorage.getItem("queue"));
-
-    // Set queue items on python partyzone controller
-    for (let track of this.queued_tracks.values()) {
-        this.allplay.addToQueue(track);
-    }
-
-    console.log(this.queued_tracks);
-
-    return;
+  constructor(private allplay: AllPlay, private queueContainer : QueueContainer, private dialogService: DialogService, private router: Router) {
   }
 
   async loadPlaylist(event: any) {
@@ -68,14 +41,12 @@ export class Queue {
     return true;
   }
 
-  get queuedTracks() : QueueContainer {
-      return this.queued_tracks;
+  get queuedTracks() : Array<ITrack> {
+      return this.queueContainer.queued_tracks;
   }
 
   resetQueue() {
-    this.queued_tracks = new Map<number, ITrack>();
-    localStorage.setItem("queue", "[]");
-    this.queued_tracks.clear();
+    this.queueContainer.resetQueue();
     this.allplay.empty_queue();
     return true;
   }
@@ -86,20 +57,14 @@ export class Queue {
   }
 
   addToQueue(track: ITrack) {
-    this.queued_tracks.set(+track.id, track);
-    localStorage.setItem("queue", mapToJson(this.queued_tracks));
-    this.allplay.addToQueue(track);
+    this.queueContainer.addToQueue(track);
+    //this.allplay.addToQueue(track);
   }
 
   play(event: any) {
-    this.allplay.play_queue();
+    this.allplay.play_queue(this.queueContainer);
     return true;
   }
-
-  //save(event: any, name : string) {
-  //  this.allplay.saveQueue(name, this.queued_tracks);
-  //  return true;
- // }
 
   stop(event: any) {
     this.allplay.setupQueueMode(false);
@@ -116,7 +81,7 @@ export class Queue {
   playTrack(event: any, track: ITrack) {
     //this.allplay.setupAutoMode(false);
     this.allplay.playTrack(track);
-  	return true;
+    return true;
   }
 
   // gotoTrackEdit(event: any, track: ITrack) {

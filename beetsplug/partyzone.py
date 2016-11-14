@@ -464,6 +464,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             basetime = p.proxy.play(None)
 
             for p in self.players[1:]:
+                if not p.active:
+                    continue
                 p.proxy.track = uri
                 print("setting basetime for %s to %s" % (p.proxy.name, str(basetime)))
                 #p.proxy.play(basetime)
@@ -478,6 +480,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 p.proxy.stop()
 
         def add_to_queue(self, url):
+            print("adding to queue:" + url)
             self.__queue.append(url)
 
         def next_track(self):
