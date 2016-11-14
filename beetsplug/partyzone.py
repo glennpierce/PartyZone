@@ -135,7 +135,7 @@ class AddToQueueHandler(BaseHandler):
             self.finish()
             return
         self.application.controller.add_to_queue(data['track_id'])
-        print("adding track_id %s to queue" % (data['track_id'],))
+        print("adding track_id %s (%s) to queue" % (data['track_id'],data['path']))
         self.write({'return': 'ok'})
         self.finish()
 
@@ -466,7 +466,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
             for p in self.players[1:]:
                 p.proxy.track = uri
                 print("setting basetime for %s to %s" % (p.proxy.name, str(basetime)))
-                p.proxy.play(basetime)
+                #p.proxy.play(basetime)
+                p.proxy.play_no_wait(basetime)
 
         def pause(self):
             "Pause all players"

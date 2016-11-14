@@ -159,6 +159,10 @@ class Player(object):
        
         return basetime
 
+    @Pyro4.oneway
+    def play_no_wait(self, basetime=None):
+        self.play(basetime)
+
     def is_paused(self):
         return self.state() == Gst.State.PAUSED
 
