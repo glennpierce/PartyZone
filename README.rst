@@ -88,10 +88,6 @@ You must serve the files created in beetsplug/web/dist
 
 The webpages look like below.
 
-
-.. image:: https://github.com/glennpierce/alljoyn_python/raw/master/images/BeetsAllPlayPlugin.png?raw=true
-
-
 .. image:: https://github.com/glennpierce/PartyZone/raw/master/speakers.png
 
 .. image:: https://github.com/glennpierce/PartyZone/raw/master/queue.png
