@@ -165,7 +165,7 @@ export class AllPlay {
     return playlists;
   }
 
-  async getPlaylist(name : string) : ITrack[] {
+  async getPlaylist(name : string) : Promise<ITrack[]> {
     await fetch;
 
     let response = await this.http.fetch('playlist/' + name);
@@ -261,7 +261,7 @@ export class AllPlay {
     });
   }
 
-  async getSpeakers(): Promise<void> {
+  async getSpeakers(): Promise<Array<Speaker>> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
@@ -269,7 +269,7 @@ export class AllPlay {
     let result = await response.json();
     let devices = result['devices'];
     
-    let speakers : any[] = [];
+    let speakers : Array<Speaker> = [];
 
     for (let i in devices) {
         let v = devices[i];

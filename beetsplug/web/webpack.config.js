@@ -1,5 +1,4 @@
 "use strict";
-require('regenerator-runtime/runtime');
 
 /**
  * To learn more about how to use Easy Webpack
@@ -9,12 +8,11 @@ const easyWebpack = require('@easy-webpack/core');
 const generateConfig = easyWebpack.default;
 const get = easyWebpack.get;
 const path = require('path');
-const ELECTRON = process.env.ELECTRON && process.env.ELECTRON.toLowerCase() || false;
 const ENV = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() || 'development';
 let config;
 
 // basic configuration:
-const title = 'Partyzone';
+const title = 'Aurelia Navigation Skeleton';
 const baseUrl = '/';
 const rootDir = path.resolve();
 const srcDir = path.resolve('src');
@@ -22,6 +20,7 @@ const outDir = path.resolve('dist');
 
 const coreBundles = {
   bootstrap: [
+    'aurelia-bootstrapper-webpack',
     'aurelia-polyfills',
     'aurelia-pal',
     'aurelia-pal-browser',
@@ -52,15 +51,14 @@ const coreBundles = {
     'aurelia-templating',
     'aurelia-templating-binding',
     'aurelia-templating-router',
-    'aurelia-templating-resources',
-    'aurelia-materialize-bridge',
+    'aurelia-templating-resources'
   ]
 }
 
 const baseConfig = {
   entry: {
-    'app': ['./src/main'],
-    'aurelia-bootstrap': ['./index'].concat(coreBundles.bootstrap),
+    'app': [/* this is filled by the aurelia-webpack-plugin */],
+    'aurelia-bootstrap': coreBundles.bootstrap,
     'aurelia': coreBundles.aurelia.filter(pkg => coreBundles.bootstrap.indexOf(pkg) === -1)
   },
   output: {
@@ -69,7 +67,6 @@ const baseConfig = {
 }
 
 // advanced configuration:
-
 switch (ENV) {
   case 'production':
     config = generateConfig(
@@ -85,7 +82,7 @@ switch (ENV) {
       require('@easy-webpack/config-html')(),
 
       require('@easy-webpack/config-css')
-        ({ filename: 'styles.css', allChunks: !!ELECTRON, sourceMap: false }),
+        ({ filename: 'styles.css', allChunks: true, sourceMap: false }),
 
       require('@easy-webpack/config-fonts-and-images')(),
       require('@easy-webpack/config-global-bluebird')(),
@@ -93,6 +90,12 @@ switch (ENV) {
       require('@easy-webpack/config-global-regenerator')(),
       require('@easy-webpack/config-generate-index-html')
         ({minify: true}),
+
+      require('@easy-webpack/config-common-chunks-simple')
+        ({appChunkName: 'app', firstChunk: 'aurelia-bootstrap'}),
+
+      require('@easy-webpack/config-copy-files')
+        ({patterns: [{ from: 'favicon.ico', to: 'favicon.ico' }]}),
 
       require('@easy-webpack/config-uglify')
         ({debug: false})
@@ -109,17 +112,21 @@ switch (ENV) {
       require('@easy-webpack/config-aurelia')
         ({root: rootDir, src: srcDir, title: title, baseUrl: baseUrl}),
 
-      require('@easy-webpack/config-typescript')(),
+      require('@easy-webpack/config-typescript')
+        ({ options: { doTypeCheck: false, compilerOptions: { sourceMap: false, inlineSourceMap: true } }}),
+
       require('@easy-webpack/config-html')(),
 
       require('@easy-webpack/config-css')
-        ({ filename: 'styles.css', allChunks: !!ELECTRON, sourceMap: false }),
+        ({ filename: 'styles.css', allChunks: true, sourceMap: false }),
 
       require('@easy-webpack/config-fonts-and-images')(),
       require('@easy-webpack/config-global-bluebird')(),
       require('@easy-webpack/config-global-jquery')(),
       require('@easy-webpack/config-global-regenerator')(),
-      require('@easy-webpack/config-generate-index-html')()
+      require('@easy-webpack/config-generate-index-html')(),
+
+      require('@easy-webpack/config-test-coverage-istanbul')()
     );
     break;
   
@@ -138,41 +145,22 @@ switch (ENV) {
       require('@easy-webpack/config-html')(),
 
       require('@easy-webpack/config-css')
-        ({ filename: 'styles.css', allChunks: !!ELECTRON, sourceMap: false }),
+        ({ filename: 'styles.css', allChunks: true, sourceMap: false }),
 
       require('@easy-webpack/config-fonts-and-images')(),
       require('@easy-webpack/config-global-bluebird')(),
       require('@easy-webpack/config-global-jquery')(),
       require('@easy-webpack/config-global-regenerator')(),
       require('@easy-webpack/config-generate-index-html')
-        ({minify: false})
+        ({minify: false}),
+
+      require('@easy-webpack/config-copy-files')
+        ({patterns: [{ from: 'favicon.ico', to: 'favicon.ico' }]}),
+
+      require('@easy-webpack/config-common-chunks-simple')
+        ({appChunkName: 'app', firstChunk: 'aurelia-bootstrap'})
     );
     break;
-}
-
-if (ELECTRON) {
-  config = generateConfig(
-    config,
-    { entry: ['./index', './src/main'] },
-    require('@easy-webpack/config-electron')(),
-    ELECTRON == 'main' ? 
-      require('@easy-webpack/config-electron-main')() : require('@easy-webpack/config-electron-renderer')()
-  );
-}
-
-if (ENV !== 'test' && !ELECTRON) {
-  config = generateConfig(
-    config,
-    require('@easy-webpack/config-common-chunks-simple')
-      ({appChunkName: 'app', firstChunk: 'aurelia-bootstrap'})
-  );
-}
-
-if (ENV === 'test') {
-  config = generateConfig(
-    config,
-    require('@easy-webpack/config-test-coverage-istanbul')()
-  );
 }
 
 module.exports = config;
