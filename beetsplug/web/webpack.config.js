@@ -18,6 +18,9 @@ const rootDir = path.resolve();
 const srcDir = path.resolve('src');
 const outDir = path.resolve('dist');
 
+//var PrefetchPlugin = require("webpack/lib/PrefetchPlugin");
+//var CommonsChunkPlugin = require("webpack/lib/optimize/CommonsChunkPlugin");
+
 const coreBundles = {
   bootstrap: [
     'aurelia-bootstrapper-webpack',
@@ -25,7 +28,8 @@ const coreBundles = {
     'aurelia-pal',
     'aurelia-pal-browser',
     'regenerator-runtime',
-    'bluebird'
+    'bluebird',
+    'materialize-css'
   ],
   // these will be included in the 'aurelia' bundle (except for the above bootstrap packages)
   aurelia: [
@@ -65,6 +69,8 @@ const baseConfig = {
     path: outDir,
   }
 }
+
+
 
 // advanced configuration:
 switch (ENV) {
@@ -160,7 +166,23 @@ switch (ENV) {
       require('@easy-webpack/config-common-chunks-simple')
         ({appChunkName: 'app', firstChunk: 'aurelia-bootstrap'})
     );
+
+
     break;
 }
+
+
+
+  //  config.plugins = config.plugins.concat([new CommonsChunkPlugin({ name: 'commons.js', chunks: ['jquery', 'materialize-css'] })]); 
+
+//config.plugins = config.plugins.concat([
+//  new PrefetchPlugin({ name: 'commons.js', chunks: ['jquery', 'materialize'] })
+//]); 
+
+
+config.resolve.alias = {
+  '$': path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js'),
+  'jquery': path.resolve(__dirname, 'node_modules/jquery/dist/jquery.js')
+};
 
 module.exports = config;
