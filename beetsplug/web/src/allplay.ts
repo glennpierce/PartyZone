@@ -126,6 +126,22 @@ export class AllPlay {
       return this.tracks.filter(track => track.id === +id)[0];
   }
 
+  async getAlbums(): Promise<void> {
+
+    // ensure fetch is polyfilled before we create the http client
+    await fetch;
+
+    const response = await this.http.fetch('tracks', {
+        method: 'get',
+    });
+
+    let result = await response.json();
+    this.tracks = result['items'];
+
+    
+    console.log(this);
+  }
+
   private async addToQueue(track: ITrack) {
     let parameters = { 'track_id': track.id, 'path': track.path };
     await this.http.fetch('add_to_queue', {
