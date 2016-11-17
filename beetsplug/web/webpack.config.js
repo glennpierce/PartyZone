@@ -29,7 +29,7 @@ const coreBundles = {
     'aurelia-pal-browser',
     'regenerator-runtime',
     'bluebird',
-    'materialize-css'
+    //'materialize-css'
   ],
   // these will be included in the 'aurelia' bundle (except for the above bootstrap packages)
   aurelia: [

@@ -5,8 +5,9 @@
     </ai-dialog-header>
     <ai-dialog-body>
       <div if.bind="choosePlaylist">
-          <h3>Playlists:</h3>
-          <div repeat.for="playlist of playlists" click.delegate="selectPlaylist($event, playlist)">${playlist.name}</div>
+          <div style="playlistContainer">
+            <div class="card-panel teal lighten-2" repeat.for="playlist of playlists" click.delegate="selectPlaylist($event, playlist)">${playlist.name}</div>
+          </div>
       </div>
       <div if.bind="!choosePlaylist">
           <h3>Name:</h3>
