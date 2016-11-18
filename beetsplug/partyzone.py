@@ -549,7 +549,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 p.proxy.stop()
 
         def add_to_queue(self, url):
-            print("adding to queue:" + url)
             self.__queue.append(url)
 
         def next_track(self):
