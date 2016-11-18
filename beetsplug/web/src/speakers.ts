@@ -1,34 +1,30 @@
 import {inject, Lazy, autoinject} from 'aurelia-framework';
 import {HttpClient} from 'aurelia-fetch-client';
 import {Router} from 'aurelia-router';
-import {AllPlay, ISpeaker} from './allplay';
+import {AllPlay, Speaker} from './allplay';
 
 @inject(AllPlay, Router)
 export class Speakers {
   heading: string = 'Speakers';
-  speakers: Array<ISpeaker>;
+  speakers: Array<Speaker> = [];
 
   constructor(private allplay: AllPlay, private router: Router) {
   }
 
   async discover() {
     this.speakers = await this.allplay.getSpeakers();
-    debugger;
-    console.log("here");
   }
 
-  activate() {
+  async activate() {
       this.discover();
   }
 
-  speakerSelected(event: any, speaker: ISpeaker) {
-    
-    //this.allplay.saveSpeakersToLocalStorage(this.speakers.values());
+  speakerSelected(event: any, speaker: Speaker) {
     this.allplay.selectSpeakers(this.speakers);
     return true;
   }
 
-  volumeChanged(event: any, speaker: ISpeaker) {
+  volumeChanged(event: any, speaker: Speaker) {
     //this.allplay.adjustVolume(speaker);
     //alert(speaker.volume);
   }

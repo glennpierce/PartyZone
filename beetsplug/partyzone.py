@@ -323,7 +323,9 @@ class GetDevicesHandler(BaseHandler):
         print("GetDevicesHandler")
         self.application.controller.rediscover()
         self.content_type = 'application/json'
-        self.write({'devices': [{'id': i.uri, 'name': i.proxy.name, 'selected': i.active} for i in self.application.controller.get_devices()]})
+        devices = [{'id': i.uri, 'name': i.proxy.name, 'selected': i.active} for i in self.application.controller.get_devices()]
+        print(str(devices))
+        self.write({'devices': devices})
         self.finish()
 
 class RediscoverDevicesHandler(BaseHandler):

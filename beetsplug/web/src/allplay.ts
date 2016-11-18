@@ -15,10 +15,16 @@ export interface ITrack {
   year: number
 }
 
-export interface ISpeaker {
+export class Speaker {
   id: string;
   name: string;
   selected: boolean;
+
+  constructor(id: string, name: string, selected: boolean) {
+     this.selected = false;
+     this.id = id;
+     this.name = name;
+  };
 }
 
 export interface IAlbum {
@@ -291,7 +297,7 @@ export class AllPlay {
     });
   }
   
-  async adjustVolume(speaker: ISpeaker): Promise<void> {
+  async adjustVolume(speaker: Speaker): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
@@ -302,20 +308,29 @@ export class AllPlay {
     });
   }
 
-  async getSpeakers(): Promise<Array<ISpeaker>> {
+  async getSpeakers(): Promise<Array<Speaker>> {
 
     await fetch;
-
+    let tmp = new Array<Speaker>();
+    
     const response = await this.http.fetch('get_devices', { 
         method: 'get',
     });
 
     let result = await response.json();
-    console.log(result);
-    return result['devices'];
+    let speakers = await result['devices'];
+    for (let s of speakers) {
+        tmp.push(new Speaker(s['id'], s['name'], s['selected']))
+    }
+    return tmp;
+
+    // for (let i = 0; i < speakers.length; i++) {
+    //     let s = speakers[i];
+    //     speakerIds.push({'id': s.id, 'selected': s.selected});
+    //   }
   }
 
-  async selectSpeakers(speakers : Array<ISpeaker>) {
+  async selectSpeakers(speakers : Array<Speaker>) {
 
       let speakerIds = Array<any>();
 
@@ -331,40 +346,4 @@ export class AllPlay {
         body: JSON.stringify(parameters)
       });
   }
-
-
-
-//   loadSpeakersFromLocalStorage() {
-//       let speakersJson : string = localStorage.getItem("speakers");
-//       let savedSpeakers = null;
-
-//       if(speakersJson !== null && speakersJson != "") {
-//         savedSpeakers = JSON.parse(speakersJson);
-//       }
-
-//       let allSpeakers = await this.allplay.getSpeakers();
-
-//       for (let i in allSpeakers) {
-//           let s = allSpeakers[i];
-//           if (s.id in savedSpeakers) {
-//             s.selected = true;
-//           }
-//       }
-
-//       this.allplay.selectSpeakers(allSpeakers);
-//   }
-
-//   saveSpeakersToLocalStorage(speakers: Array<Speaker>) {
-    
-//     let tmp = {};
-
-//     for (let speaker of speakers) {
-//         if(speaker.selected) {
-//             tmp[speaker.id] = speaker.name;
-//         }
-//         localStorage.setItem("speakers", JSON.stringify(tmp);
-//     }
-
-//     return true;
-//   }
 }
