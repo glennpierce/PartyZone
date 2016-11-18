@@ -11,6 +11,8 @@ export interface ITrack {
   path: string;
   album: string;
   artist: string;
+  album_id: number,
+  year: number
 }
 
 export class Speaker {

@@ -192,9 +192,6 @@ class VolumeHandler(BaseHandler):
         self.write({'return': 'ok'})
         self.finish()
 
-#"album_id": 168,
-#"year":
-
 class GetTracksHandler(BaseHandler):
     def get(self):
         self.content_type = 'application/json'
@@ -206,11 +203,34 @@ class GetTracksHandler(BaseHandler):
                     'title': item.title,
                     'path': item.path,
                     'artist': item.artist,
-                    'album': item.album
+                    'album': item.album,
+                    'album_id': item.album_id,
+                    'year': item.year,
                     }
                 )
 
         self.write({'items': tracks})
+        self.finish()
+
+class GetAlbumsHandler(BaseHandler):
+    def get(self):
+        self.content_type = 'application/json'
+        albums = []
+        for album in self.application.lib.albums():
+            print(vars(album))
+            # albums.append(
+            #         {
+            #         'id': item.id,
+            #         'title': item.title,
+            #         'path': item.path,
+            #         'artist': item.artist,
+            #         'album': item.album,
+            #         'album_id': item.album_id,
+            #         'year': item.year,
+            #         }
+            #     )
+
+        self.write({'albums': albums})
         self.finish()
 
 class GetPlaylistsHandler(BaseHandler):
@@ -562,7 +582,8 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     (r"/empty_queue$", EmptyQueueHandler),
                     (r"/playtrack$", PlayFileHandler),
                     (r"/playqueue$", PlayQueueFileHandler),         
-                    (r"/tracks$", GetTracksHandler),      
+                    (r"/tracks$", GetTracksHandler),     
+                    (r"/albums$", GetAlbumsHandler), 
                     (r"/stop$", StopPlayHandler),
                     (r"/adjust_volume$", VolumeHandler),
                     (r"/get_devices$", GetDevicesHandler),
