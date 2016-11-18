@@ -12,8 +12,7 @@ export interface ITrack {
   album: string;
   artist: string;
   album_id: number,
-  year: number,
-  artpath: string
+  year: number
 }
 
 export interface IAlbum {

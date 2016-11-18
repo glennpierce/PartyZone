@@ -13,14 +13,24 @@
 
               <md-collection view-model.ref="list">
                 <md-collection-item repeat.for="track of pageTracks" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">
-                  <span class="accent-text title">${track.title}</span>
-                  <p>Album ${track.album}</p>
-                  <p>Artist ${track.artist}</p>
-                  <div class="secondary-content">
-                    <a href click.delegate="gotoTrackEdit($event, track)"><i class="material-icons small">mode_edit</i></a>
-                    <a href click.delegate="addToQueue($event, track)"><i class="material-icons small">playlist_add</i></a>
-                    <a href click.delegate="playTrack($event, track)"><i class="material-icons small">play_arrow</i></a>
+                  
+                  <div class="row">
+                    <div class="col s1">
+                    <img width="72" height="72" src="http://192.168.1.6:5000/album_artwork/${track.artpath}" />
+                    </div>
+
+                    <div class="col s11">
+                      <span class="accent-text title">${track.title}</span>
+                      <p>Album ${track.album}</p>
+                      <p>Artist ${track.artist}</p>
+                      <div class="secondary-content">
+                        <a href click.delegate="gotoTrackEdit($event, track)"><i class="material-icons small">mode_edit</i></a>
+                        <a href click.delegate="addToQueue($event, track)"><i class="material-icons small">playlist_add</i></a>
+                        <a href click.delegate="playTrack($event, track)"><i class="material-icons small">play_arrow</i></a>
+                      </div>
+                    </div>
                   </div>
+                
                 </md-collection-item>
               </md-collection>
 

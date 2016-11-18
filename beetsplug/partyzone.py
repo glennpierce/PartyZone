@@ -206,8 +206,7 @@ class GetTracksHandler(BaseHandler):
                     'artist': item.artist,
                     'album': item.album,
                     'album_id': item.album_id,
-                    'year': item.year,
-                    'artpath': item.get_album()['artpath']
+                    'year': item.year
                     }
                 )
 
