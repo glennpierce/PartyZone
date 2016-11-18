@@ -212,23 +212,22 @@ class GetTracksHandler(BaseHandler):
         self.write({'items': tracks})
         self.finish()
 
+
 class GetAlbumsHandler(BaseHandler):
     def get(self):
         self.content_type = 'application/json'
         albums = []
         for album in self.application.lib.albums():
-            print(vars(album))
-            # albums.append(
-            #         {
-            #         'id': item.id,
-            #         'title': item.title,
-            #         'path': item.path,
-            #         'artist': item.artist,
-            #         'album': item.album,
-            #         'album_id': item.album_id,
-            #         'year': item.year,
-            #         }
-            #     )
+            #print(vars(album))
+            albums.append(
+                     {
+                      'id': italbumem.id,
+                      'album': album.album,
+                      'albumartist': album.albumartist,
+                      'albumtype': album.albumtype,
+                      'artpath': album.artpath
+                     }
+                 )
 
         self.write({'albums': albums})
         self.finish()
