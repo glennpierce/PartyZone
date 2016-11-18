@@ -17,6 +17,7 @@ import requests
 import glob
 import traceback
 import codecs
+import mimetypes
 import ujson as json
 
 #os.environ["PYRO_LOGFILE"] = "pyro.log"
@@ -212,7 +213,6 @@ class GetTracksHandler(BaseHandler):
         self.write({'items': tracks})
         self.finish()
 
-
 class GetAlbumsHandler(BaseHandler):
     def get(self):
         self.content_type = 'application/json'
@@ -224,12 +224,26 @@ class GetAlbumsHandler(BaseHandler):
                       'id': album.id,
                       'album': album.album,
                       'albumartist': album.albumartist,
-                      'albumtype': album.albumtype,
-                      'artpath': album.artpath
+                      'albumtype': album.albumtype
                      }
                  )
 
         self.write({'albums': albums})
+        self.finish()
+
+class GetAlbumArtworkHandler(BaseHandler):
+    "Returns an audio file as a stream for gstreamer"
+    def get(self, param1):
+        album_id = param1
+        album = self.application.lib.get_album(int(album_id))
+        uri = item['artpath']
+        mime_type, encoding = mimetypes.guess_type(uri)
+        if mime_type:
+            self.set_header("Content-Type", mime_type)
+
+        with open(uri, 'rb') as f:
+            data = f.read()
+            self.write(data)
         self.finish()
 
 class GetPlaylistsHandler(BaseHandler):
@@ -588,6 +602,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     (r"/get_devices$", GetDevicesHandler),
                     (r"/update$", UpdateTrackHandler),
                     (r"/trackfile/([0-9]+)", TrackFileHandler),
+                    (r"/album_artwork/([0-9]+)", GetAlbumArtworkHandler),  
                     (r"/playlists$", GetPlaylistsHandler),
                     (r"/playlist/([^/]*)", GetPlaylistHandler),
                     (r"/save_playlist$", SavePlaylistHandler),
