@@ -15,6 +15,13 @@ export interface ITrack {
   year: number
 }
 
+export interface IAlbum {
+  id: number;
+  album: string;
+  albumartist: string;
+  albumtype: string;
+}
+
 export class Speaker {
  
   private _selected: boolean;
@@ -128,20 +135,17 @@ export class AllPlay {
       return this.tracks.filter(track => track.id === +id)[0];
   }
 
-  async getAlbums(): Promise<void> {
+  async getAlbums(): Promise<Array<IAlbum>> {
 
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
-    const response = await this.http.fetch('tracks', {
+    const response = await this.http.fetch('albums', {
         method: 'get',
     });
 
     let result = await response.json();
-    this.tracks = result['items'];
-
-    
-    console.log(this);
+    return result['albums'];
   }
 
   private async addToQueue(track: ITrack) {

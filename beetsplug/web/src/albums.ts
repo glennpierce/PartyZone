@@ -1,15 +1,15 @@
 import {inject, Lazy, autoinject} from 'aurelia-framework';
 import {HttpClient} from 'aurelia-fetch-client';
 import {Router} from 'aurelia-router';
-import {AllPlay, ITrack} from './allplay';
+import {AllPlay, IAlbum} from './allplay';
 import {Queue} from './queue';
 
 
 @inject(AllPlay, Queue, Router)
 export class Albums {
   heading : string = 'Albums';
-  tracks : Array<ITrack> = [];
-  pageTracks : Array<ITrack> = [];
+  tracks : Array<IAlbum> = [];
+  pageTracks : Array<IAlbum> = [];
   activePage : number = 1;
   numberOfPages : number = 1;
   showFirstLastPages : boolean = false;
@@ -22,7 +22,7 @@ export class Albums {
   }
 
   async activate(params, navigationInstruction): Promise<void> {
-    this.tracks = await this.allplay.getTracks();
+    this.tracks = await this.allplay.getAlbums();
     this.numberOfPages = Math.ceil(this.tracks.length / this.tracksPerPage);
     this.setPage(1);
   }
@@ -59,18 +59,18 @@ export class Albums {
     this.setPage(e.detail);
   }
 
-  addToQueue(event: any, track: ITrack) {
-    this.queue.addToQueue(track);
+  addToQueue(event: any, track: IAlbum) {
+    //this.queue.addToQueue(track);
   }
 
-  playTrack(event: any, track: ITrack) {
-    this.allplay.stop();
-    this.allplay.setupQueueMode(false);
-    this.allplay.playTrack(track);
+  playTrack(event: any, track: IAlbum) {
+    // this.allplay.stop();
+    // this.allplay.setupQueueMode(false);
+    // this.allplay.playTrack(track);
     return false;
   }
   
-  gotoTrackEdit(event: any, track: ITrack) {
+  gotoTrackEdit(event: any, track: IAlbum) {
     this.router.navigateToRoute('track-edit', { id: track.id });
     event.preventDefault();
   }
