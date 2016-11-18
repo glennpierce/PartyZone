@@ -213,6 +213,27 @@ class GetTracksHandler(BaseHandler):
         self.write({'items': tracks})
         self.finish()
 
+class GetTracksForAlbumHandler(BaseHandler):
+    def get(self, album_id):
+        self.content_type = 'application/json'
+        album = self.application.lib.get_album(int(album_id))
+        tracks = []
+        for item in album.items():
+            tracks.append(
+                    {
+                    'id': item.id,
+                    'title': item.title,
+                    'path': item.path,
+                    'artist': item.artist,
+                    'album': item.album,
+                    'album_id': item.album_id,
+                    'year': item.year
+                    }
+                )
+
+        self.write({'items': tracks})
+        self.finish()
+
 class GetAlbumsHandler(BaseHandler):
     def get(self):
         self.content_type = 'application/json'
@@ -608,6 +629,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     (r"/get_devices$", GetDevicesHandler),
                     (r"/update$", UpdateTrackHandler),
                     (r"/trackfile/([0-9]+)", TrackFileHandler),
+                    (r"/albumtracks/([0-9]+)", GetTracksForAlbumHandler),         
                     (r"/album_artwork/([0-9]+)", GetAlbumArtworkHandler),  
                     (r"/playlists$", GetPlaylistsHandler),
                     (r"/playlist/([^/]*)", GetPlaylistHandler),
