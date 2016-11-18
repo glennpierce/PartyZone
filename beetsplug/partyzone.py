@@ -221,7 +221,7 @@ class GetAlbumsHandler(BaseHandler):
             #print(vars(album))
             albums.append(
                      {
-                      'id': italbumem.id,
+                      'id': album.id,
                       'album': album.album,
                       'albumartist': album.albumartist,
                       'albumtype': album.albumtype,
