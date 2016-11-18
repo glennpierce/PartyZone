@@ -306,32 +306,13 @@ export class AllPlay {
 
     await fetch;
 
-    const response = await this.http.fetch('get_devices', {
+    const response = await this.http.fetch('get_devices', { 
         method: 'get',
     });
 
     let result = await response.json();
     console.log(result);
     return result['devices'];
-
-
-    // // ensure fetch is polyfilled before we create the http client
-    // await fetch;
-
-    // const response = await this.http.fetch('get_devices');
-    // let result = await response.json();
-    // let devices = result['devices'];
-    
-    // let speakers : Array<Speaker> = [];
-
-    // for (let i in devices) {
-    //     let v = devices[i];
-    //     let speaker : Speaker = new Speaker(this.http, v[0], v[1]);
-    //     speakers.push(speaker);
-    // }
-
-    // console.log(this);
-    // return speakers;
   }
 
   async selectSpeakers(speakers : Array<ISpeaker>) {
@@ -350,6 +331,8 @@ export class AllPlay {
         body: JSON.stringify(parameters)
       });
   }
+
+
 
 //   loadSpeakersFromLocalStorage() {
 //       let speakersJson : string = localStorage.getItem("speakers");

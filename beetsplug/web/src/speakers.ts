@@ -13,10 +13,11 @@ export class Speakers {
 
   async discover() {
     this.speakers = await this.allplay.getSpeakers();
+    debugger;
     console.log("here");
   }
 
-  async activate() {
+  activate() {
       this.discover();
   }
 
