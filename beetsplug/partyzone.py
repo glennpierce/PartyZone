@@ -236,7 +236,7 @@ class GetAlbumArtworkHandler(BaseHandler):
     def get(self, param1):
         album_id = param1
         album = self.application.lib.get_album(int(album_id))
-        uri = item['artpath']
+        uri = album['artpath']
         mime_type, encoding = mimetypes.guess_type(uri)
         if mime_type:
             self.set_header("Content-Type", mime_type)
