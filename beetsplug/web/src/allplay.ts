@@ -148,6 +148,19 @@ export class AllPlay {
     return result['albums'];
   }
 
+  async getTracksForAlbum(album_id : number): Promise<Array<ITrack>> {
+
+    // ensure fetch is polyfilled before we create the http client
+    await fetch;
+
+    const response = await this.http.fetch('albumtracks/' + album_id, {
+        method: 'get',
+    });
+
+    let result = await response.json();
+    return result['items'];
+  }
+
   private async addToQueue(track: ITrack) {
     let parameters = { 'track_id': track.id, 'path': track.path };
     await this.http.fetch('add_to_queue', {

@@ -58,12 +58,14 @@ export class Albums {
     this.setPage(e.detail);
   }
 
-  addToQueue(event: any, album: IAlbum) {
-    //this.queue.addToQueue(track);
-  }
-  
-  gotoTrackEdit(event: any, track: IAlbum) {
-    this.router.navigateToRoute('track-edit', { id: track.id });
-    event.preventDefault();
+  async addToQueue(event: any, album_id: number) {
+
+    let tracks = await this.allplay.getTracksForAlbum(album_id);
+ 
+    this.queue.resetQueue();
+
+    for (let track of tracks) {
+        await this.queue.addToQueue(track);
+    }
   }
 }
