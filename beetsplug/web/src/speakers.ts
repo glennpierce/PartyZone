@@ -1,57 +1,33 @@
 import {inject, Lazy, autoinject} from 'aurelia-framework';
 import {HttpClient} from 'aurelia-fetch-client';
 import {Router} from 'aurelia-router';
-import {AllPlay, Speaker} from './allplay';
-//import {MdRange} from 'aurelia-materialize-bridge';
+import {AllPlay, ISpeaker} from './allplay';
 
 @inject(AllPlay, Router)
 export class Speakers {
   heading: string = 'Speakers';
-  speakers: Array<Speaker> = [];
-  savedSpeakers = {};
+  speakers: Array<ISpeaker>;
 
   constructor(private allplay: AllPlay, private router: Router) {
   }
 
-  async setup() {
-      let speakersJson : string = localStorage.getItem("speakers");
-
-      if(speakersJson !== null && speakersJson != "") {
-        this.savedSpeakers = JSON.parse(speakersJson);
-      }
-
-      this.speakers = await this.allplay.getSpeakers();
-
-      for (let i in this.speakers) {
-          let s = this.speakers[i];
-          if (s.id in this.savedSpeakers) {
-            s.selected = true;
-          }
-      }
-
-      this.allplay.selectSpeakers(this.speakers);
+  async discover() {
+    this.speakers = await this.allplay.getSpeakers();
+    console.log("here");
   }
 
-  async activate(): Promise<void> {
-      this.setup();
+  async activate() {
+      this.discover();
   }
 
-  speakerSelected(event: any, speaker: Speaker) {
+  speakerSelected(event: any, speaker: ISpeaker) {
     
-    if(speaker.selected) {
-        this.savedSpeakers[speaker.id] = speaker.name;
-    }
-    else {
-        if(speaker.id in this.savedSpeakers) {
-          delete this.savedSpeakers[speaker.id];
-        }
-    }
-    localStorage.setItem("speakers", JSON.stringify(this.savedSpeakers));
+    //this.allplay.saveSpeakersToLocalStorage(this.speakers.values());
     this.allplay.selectSpeakers(this.speakers);
     return true;
   }
 
-  volumeChanged(event: any, speaker: Speaker) {
+  volumeChanged(event: any, speaker: ISpeaker) {
     //this.allplay.adjustVolume(speaker);
     //alert(speaker.volume);
   }

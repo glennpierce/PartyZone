@@ -30,7 +30,7 @@ export class Albums {
   private match(search : string, item: any) : boolean {
         let lcase_search = search.toLowerCase();
         if((item['album'].toLowerCase().indexOf(lcase_search) > -1) ||
-        (item['albumartist'].toLowerCase().indexOf(lcase_search) > -1) {
+           (item['albumartist'].toLowerCase().indexOf(lcase_search) > -1)) {
             return true;
         }
         return false;

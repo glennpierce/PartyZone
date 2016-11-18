@@ -15,6 +15,12 @@ export interface ITrack {
   year: number
 }
 
+export interface ISpeaker {
+  id: string;
+  name: string;
+  selected: boolean;
+}
+
 export interface IAlbum {
   id: number;
   album: string;
@@ -22,26 +28,26 @@ export interface IAlbum {
   albumtype: string;
 }
 
-export class Speaker {
+// export class Speaker {
  
-  private _selected: boolean;
-  id: string;
-  name: string;
+//   private _selected: boolean;
+//   id: string;
+//   name: string;
 
-  constructor(private http: HttpClient, id: string, name: string) {
-    this._selected = false;
-    this.id = id;
-    this.name = name;
-  };
+//   constructor(id: string, name: string) {
+//     this._selected = false;
+//     this.id = id;
+//     this.name = name;
+//   };
 
-  get selected(): boolean {
-    return this._selected;
-  }
+//   get selected(): boolean {
+//     return this._selected;
+//   }
  
-  set selected(value: boolean) {
-    this._selected = value;
-  }
-}
+//   set selected(value: boolean) {
+//     this._selected = value;
+//   }
+// }
 
 export class QueueContainer {
     queued_tracks : Array<ITrack>;
@@ -63,7 +69,7 @@ export class QueueContainer {
 export class AllPlay {
   debug : boolean = false;
   tracks: Array<ITrack> = [];
-  speakers: Array<Speaker> = [];
+  //speakers: Array<Speaker> = [];
   
   http: HttpClient;
 
@@ -285,7 +291,7 @@ export class AllPlay {
     });
   }
   
-  async adjustVolume(speaker: Speaker): Promise<void> {
+  async adjustVolume(speaker: ISpeaker): Promise<void> {
     // ensure fetch is polyfilled before we create the http client
     await fetch;
 
@@ -296,27 +302,39 @@ export class AllPlay {
     });
   }
 
-  async getSpeakers(): Promise<Array<Speaker>> {
-    // ensure fetch is polyfilled before we create the http client
+  async getSpeakers(): Promise<Array<ISpeaker>> {
+
     await fetch;
 
-    const response = await this.http.fetch('get_devices');
+    const response = await this.http.fetch('get_devices', {
+        method: 'get',
+    });
+
     let result = await response.json();
-    let devices = result['devices'];
+    console.log(result);
+    return result['devices'];
+
+
+    // // ensure fetch is polyfilled before we create the http client
+    // await fetch;
+
+    // const response = await this.http.fetch('get_devices');
+    // let result = await response.json();
+    // let devices = result['devices'];
     
-    let speakers : Array<Speaker> = [];
+    // let speakers : Array<Speaker> = [];
 
-    for (let i in devices) {
-        let v = devices[i];
-        let speaker : Speaker = new Speaker(this.http, v[0], v[1]);
-        speakers.push(speaker);
-    }
+    // for (let i in devices) {
+    //     let v = devices[i];
+    //     let speaker : Speaker = new Speaker(this.http, v[0], v[1]);
+    //     speakers.push(speaker);
+    // }
 
-    console.log(this);
-    return speakers;
+    // console.log(this);
+    // return speakers;
   }
 
-  async selectSpeakers(speakers : Speaker[]) {
+  async selectSpeakers(speakers : Array<ISpeaker>) {
 
       let speakerIds = Array<any>();
 
@@ -332,4 +350,38 @@ export class AllPlay {
         body: JSON.stringify(parameters)
       });
   }
+
+//   loadSpeakersFromLocalStorage() {
+//       let speakersJson : string = localStorage.getItem("speakers");
+//       let savedSpeakers = null;
+
+//       if(speakersJson !== null && speakersJson != "") {
+//         savedSpeakers = JSON.parse(speakersJson);
+//       }
+
+//       let allSpeakers = await this.allplay.getSpeakers();
+
+//       for (let i in allSpeakers) {
+//           let s = allSpeakers[i];
+//           if (s.id in savedSpeakers) {
+//             s.selected = true;
+//           }
+//       }
+
+//       this.allplay.selectSpeakers(allSpeakers);
+//   }
+
+//   saveSpeakersToLocalStorage(speakers: Array<Speaker>) {
+    
+//     let tmp = {};
+
+//     for (let speaker of speakers) {
+//         if(speaker.selected) {
+//             tmp[speaker.id] = speaker.name;
+//         }
+//         localStorage.setItem("speakers", JSON.stringify(tmp);
+//     }
+
+//     return true;
+//   }
 }

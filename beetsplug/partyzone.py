@@ -318,13 +318,12 @@ class SavePlaylistHandler(BaseHandler):
         self.write({'return': 'ok'})
         self.finish()
 
-
 class GetDevicesHandler(BaseHandler):
     def get(self):
         print("GetDevicesHandler")
         self.application.controller.rediscover()
         self.content_type = 'application/json'
-        self.write({'devices': [(i.uri, i.proxy.name) for i in self.application.controller.get_devices()]})
+        self.write({'devices': [(i.uri, i.proxy.name, i.active) for i in self.application.controller.get_devices()]})
         self.finish()
 
 class RediscoverDevicesHandler(BaseHandler):
@@ -344,7 +343,6 @@ class UpdateTrackHandler(BaseHandler):
         db_item.try_sync(True, False)
         self.write({'return': 'ok'})
         self.finish()
-
 
 class Device(object):
     def __init__(self, uri, proxy=None):
