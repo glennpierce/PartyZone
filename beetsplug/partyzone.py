@@ -135,10 +135,10 @@ class AddToQueueHandler(BaseHandler):
             self.write({'return': 'error', 'message': 'No track_id'})
             self.finish()
             return
-        print(data)
-        print("add_to_queue %s", data['track_id'])
+        #print(data)
+        #print("add_to_queue %s" % str(data['track_id']))
         self.application.controller.add_to_queue(data['track_id'])
-        info = "adding track_id %s (%s) to queue" % (data['track_id'], data['path'])
+        info = "adding track_id %s (%s) to queue" % (str(data['track_id']), data['path'])
         print(info.encode('ascii', 'ignore'))
         self.write({'return': 'ok'})
         self.finish()
