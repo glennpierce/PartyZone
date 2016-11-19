@@ -34,27 +34,6 @@ export interface IAlbum {
   albumtype: string;
 }
 
-// export class Speaker {
- 
-//   private _selected: boolean;
-//   id: string;
-//   name: string;
-
-//   constructor(id: string, name: string) {
-//     this._selected = false;
-//     this.id = id;
-//     this.name = name;
-//   };
-
-//   get selected(): boolean {
-//     return this._selected;
-//   }
- 
-//   set selected(value: boolean) {
-//     this._selected = value;
-//   }
-// }
-
 export class QueueContainer {
     queued_tracks : Array<ITrack>;
 
