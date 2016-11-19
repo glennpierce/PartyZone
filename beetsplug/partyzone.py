@@ -328,14 +328,6 @@ class GetDevicesHandler(BaseHandler):
         self.write({'devices': devices})
         self.finish()
 
-class RediscoverDevicesHandler(BaseHandler):
-    def post(self):
-        print("RediscoverDevicesHandler")
-        self.content_type = 'application/json'
-        self.application.controller.rediscover()
-        self.write({'return': 'ok'})
-        self.finish()
-
 class UpdateTrackHandler(BaseHandler):
     def post(self):
         data = self.json_args
@@ -347,10 +339,9 @@ class UpdateTrackHandler(BaseHandler):
         self.finish()
 
 class Device(object):
-    def __init__(self, uri, proxy=None):
-        self.active = True
+    def __init__(self, uri, proxy=None, active=False):
         self.uri = uri
-        self.active = False
+        self.active = active
         if proxy:
             self.proxy = proxy
         else:
@@ -413,9 +404,11 @@ class PartyZoneWebPlugin(BeetsPlugin):
             self.base_url = base_url
             self.directory = directory
             self.callback_uri = callback_uri
-            self.players = []
-
+            
             self.stop()
+
+            tmp = self._players[:]   # copy
+            self._players = {}
 
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone.players")
@@ -425,7 +418,10 @@ class PartyZoneWebPlugin(BeetsPlugin):
                         s = Pyro4.Proxy(uri)
                         #s.set_callback_uri(uri)
                         if s.name is not None:
-                            self.players.append(Device(uri, s))
+                            if uri in tmp: # Don't change if device already in players as it may be marked active
+                                self._players[uri] = tmp[uri]
+                            else:
+                                self._players[uri] = Device(uri, proxy=s)
                     except:
                         pass
 
@@ -439,7 +435,12 @@ class PartyZoneWebPlugin(BeetsPlugin):
             return self.__discover(self.base_url, self.callback_uri, self.directory)
 
         def __init__(self, base_url=None, callback_uri=None, directory=None):
+            self._players = {}
             return self.__discover(base_url, callback_uri=callback_uri, directory=directory)
+
+        @property
+        def players(self):
+            self._players.values()
 
         def set_device_active(self, uri, active):
             try:
@@ -470,33 +471,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
                             device.proxy.play(basetime)
                         else:
                             print("no other devices playing")
-
-                #print("setting player device %s active to %s\n" % (device.proxy.name, device.active))
-                #if not device.active:
-                #    print("device set to active false. pausing play")
-                #    device.proxy.pause(True)
-                #else:
-
-                #    if device.proxy.is_paused():
-                #        device.proxy.pause(False)
-                #        return 
-
-		#    # Ok player has not been previously paused we need to try to play the stream but 
-                #    # at the same point as any other playing devices
-                #    # Check whether other devices are playing if so play the newly activated one
-                #    playing_devices = self.playing_devices()
-                #    print("playing devices " + str(playing_devices))
-                #    if self.any_playing_devices():
-                #        if not device.proxy.is_playing():
-                #            other_device = playing_devices[0].proxy
-                #            print("other device playing " + other_device.name)
-                #            print("setting track playing to other playing track %s" % (other_device.track,))
-                #            device.proxy.track = other_device.track
-                #            basetime = other_device.get_basetime()
-                #            print("got basetime %s from other playing player" % (basetime,))
-                #            device.proxy.play(basetime)
-                #        else:
-                #            print("no other devices playing")
 
             except Exception as ex:
                 print(str(ex))
@@ -615,7 +589,6 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
             app = tornado.web.Application([
                     #(r"/", MainHandler),     
-                    #(r"/rediscover_devices$", RediscoverDevicesHandler),
                     (r"/set_active_players$", SetPlayersActiveHandler),
                     (r"/set_queue_mode$", SetQueueModeHandler),
                     (r"/add_to_queue$", AddToQueueHandler),
