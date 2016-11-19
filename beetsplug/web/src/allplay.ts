@@ -21,9 +21,9 @@ export class Speaker {
   selected: boolean;
 
   constructor(id: string, name: string, selected: boolean) {
-     this.selected = false;
      this.id = id;
      this.name = name;
+     this.selected = selected;
   };
 }
 
@@ -320,7 +320,7 @@ export class AllPlay {
     let result = await response.json();
     let speakers = await result['devices'];
     for (let s of speakers) {
-        tmp.push(new Speaker(s['id'], s['name'], s['selected']))
+        tmp.push(new Speaker(s.id, s.name, s.selected))
     }
     return tmp;
 
