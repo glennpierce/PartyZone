@@ -304,7 +304,7 @@ class SavePlaylistHandler(BaseHandler):
         playlist = os.path.join(playlist_dir, name)
         self.content_type = 'application/json'
         with codecs.open(playlist, 'w', encoding='utf-8') as f:
-            f.write(json.dumps({'items': tracks}, indent=2)
+            f.write(json.dumps({'items': tracks}, indent=2))
         self.write({'return': 'ok'})
         self.finish()
 
