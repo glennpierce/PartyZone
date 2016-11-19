@@ -440,7 +440,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
 
         @property
         def players(self):
-            self._players.values()
+            return self._players.values()
 
         def set_device_active(self, uri, active):
             try:
