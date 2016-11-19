@@ -407,7 +407,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             
             self.stop()
 
-            tmp = self._players[:]   # copy
+            tmp = self._players.copy()
             self._players = {}
 
             with Pyro4.locateNS() as ns:
