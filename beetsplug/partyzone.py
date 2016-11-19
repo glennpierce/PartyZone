@@ -317,7 +317,7 @@ class SavePlaylistHandler(BaseHandler):
         self.content_type = 'application/json'
         with codecs.open(playlist, 'w', encoding='utf-8') as f:
             for t in tracks:
-                f.write("%s,%s,%s,%s,%s,%s,%s\n" % (t['id'], t['title'], t['path'], t['album'], t['artist'], t['album_id'], t['year']))
+                f.write("%s,%s,\"%s\",%s,%s,%s,%s\n" % (t['id'], t['title'], t['path'], t['album'], t['artist'], t['album_id'], t['year']))
         self.write({'return': 'ok'})
         self.finish()
 
