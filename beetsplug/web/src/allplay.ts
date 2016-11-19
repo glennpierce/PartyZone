@@ -110,6 +110,8 @@ export class AllPlay {
             }
         })
     });
+
+    this.getSpeakers();
   }
 
   handleErrors(response) {
