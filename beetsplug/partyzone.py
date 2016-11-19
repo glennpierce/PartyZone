@@ -300,7 +300,7 @@ class GetPlaylistHandler(BaseHandler):
                               'artist': fields[2],
                               'album': fields[3],
                               'path': fields[4],
-                              #'album_id': fields[5]
+                              'album_id': fields[5]
                           }
                       )
         self.write({'items': tracks})

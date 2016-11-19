@@ -62,7 +62,7 @@ export class Albums {
 
     let tracks = await this.allplay.getTracksForAlbum(album_id);
  
-    this.queue.resetQueue();
+    //this.queue.resetQueue();
 
     for (let track of tracks) {
         await this.queue.addToQueue(track);
