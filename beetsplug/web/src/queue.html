@@ -4,9 +4,40 @@
     <div class="container">
         <div class="section">
 
+          <md-sidenav view-model.ref="sideNav" md-edge="right">
+            <div class="button-row">
+            <button md-waves class="primary" md-button="large: true;" click.delegate="play($event)"><i class="material-icons">play_arrow</i></button>
+            </div>
+
+            <div class="button-row">
+            <button md-waves class="primary" md-button="large: true;" click.delegate="pause($event)"><i class="material-icons">pause</i></button>
+            </div>
+
+            <div class="button-row">
+            <button md-waves class="primary" md-button="large: true;" click.delegate="stop($event)"><i class="material-icons">stop</i></button>
+            </div>
+
+            <div class="button-row">
+            <button md-waves class="primary" md-button="large: true;" click.delegate="reset($event)"><i class="material-icons">clear_all</i></button>
+            </div>
+
+            <div class="button-row">
+            <button md-waves class="primary" md-button="large: true;" click.delegate="loadPlaylist($event)">Load Playlist</button>
+            </div>
+
+            <div class="button-row">
+            <button md-waves class="primary" md-button="large: true;" click.delegate="savePlaylist($event)">Save Playlist</button>
+            </div>
+
+          </md-sidenav>
+
           <div class="col s12 m4">
    
-            <div class="button-row">
+            <a md-sidenav-collapse="ref.bind: sideNav;" class="left hide-on-large-only" style="cursor: pointer; padding: 0 10px;">
+              <i class="material-icons">menu</i>
+            </a>
+
+            <div class="button-row" class="left hide-on-small-only">
               <button md-waves class="primary" md-button="large: true;" click.delegate="play($event)"><i class="material-icons">play_arrow</i></button>
               <button md-waves class="primary" md-button="large: true;" click.delegate="pause($event)"><i class="material-icons">pause</i></button>
               <button md-waves class="primary" md-button="large: true;" click.delegate="stop($event)"><i class="material-icons">stop</i></button>
@@ -14,6 +45,7 @@
               <button md-waves class="primary" md-button="large: true;" click.delegate="loadPlaylist($event)">Load Playlist</button>
               <button md-waves class="primary" md-button="large: true;" click.delegate="savePlaylist($event)">Save Playlist</button>
             </div>
+
             <br><br>
 
             <md-collection view-model.ref="list">
