@@ -297,14 +297,16 @@ class GetPlaylistHandler(BaseHandler):
                           {
                               'id': fields[0],
                               'title': fields[1],
-                              'artist': fields[2],
+                              'path': fields[2],
                               'album': fields[3],
-                              'path': fields[4],
-                              'album_id': fields[5]
+                              'artist': fields[4],
+                              'album_id': fields[5],
+                              'year': fields[6]
                           }
                       )
         self.write({'items': tracks})
         self.finish()
+
 
 class SavePlaylistHandler(BaseHandler):
     def post(self):
@@ -315,7 +317,7 @@ class SavePlaylistHandler(BaseHandler):
         self.content_type = 'application/json'
         with codecs.open(playlist, 'w', encoding='utf-8') as f:
             for t in tracks:
-                f.write("%s,%s,%s,%s,%s,%s\n" % (t['id'], t['title'], t['artist'], t['album'], t['path'], t['album_id']))
+                f.write("%s,%s,%s,%s,%s,%s,%s\n" % (t['id'], t['title'], t['path'], t['album'], t['artist'], t['album_id'], t['year']))
         self.write({'return': 'ok'})
         self.finish()
 
