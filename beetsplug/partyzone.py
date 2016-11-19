@@ -291,8 +291,8 @@ class GetPlaylistHandler(BaseHandler):
         self.content_type = 'application/json'
         tracks = {}
         with codecs.open(playlist, 'r', encoding='utf-8') as f:
-            tracks = json.loads(f.read())
-        self.write({'items': tracks})
+            tracks = f.read()
+        self.write(tracks)
         self.finish()
 
 
