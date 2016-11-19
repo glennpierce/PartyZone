@@ -289,21 +289,9 @@ class GetPlaylistHandler(BaseHandler):
         #if not entry: raise tornado.web.HTTPError(404)
         playlist = os.path.join(playlist_dir, name)
         self.content_type = 'application/json'
-        lines = codecs.open(playlist, 'r', encoding='utf-8').readlines()
-        tracks = []
-        for l in lines:
-            fields = [f.strip() for f in l.split(',')]
-            tracks.append(
-                          {
-                              'id': fields[0],
-                              'title': fields[1],
-                              'path': fields[2],
-                              'album': fields[3],
-                              'artist': fields[4],
-                              'album_id': fields[5],
-                              'year': fields[6]
-                          }
-                      )
+        tracks = {}
+        with codecs.open(playlist, 'r', encoding='utf-8') as f:
+            tracks = json.loads(f.read())
         self.write({'items': tracks})
         self.finish()
 
@@ -316,8 +304,7 @@ class SavePlaylistHandler(BaseHandler):
         playlist = os.path.join(playlist_dir, name)
         self.content_type = 'application/json'
         with codecs.open(playlist, 'w', encoding='utf-8') as f:
-            for t in tracks:
-                f.write("%s,%s,\"%s\",%s,%s,%s,%s\n" % (t['id'], t['title'], t['path'], t['album'], t['artist'], t['album_id'], t['year']))
+            f.write(json.dumps({'items': tracks}, indent=2)
         self.write({'return': 'ok'})
         self.finish()
 
