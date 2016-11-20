@@ -5,11 +5,18 @@ from __future__ import (division, absolute_import, print_function,
 
 import sys
 import logging
+import os
+import os.path
+
+os.environ["PYRO_LOGFILE"] = "pyro.log"
+os.environ["PYRO_LOGLEVEL"] = "WARNING"
 
 logging.basicConfig(
     format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno)s %(funcName)s %(message)s",
     level = logging.DEBUG
 )
+
+logging.getLogger("Pyro4").setLevel(logging.WARNING)
 
 import socket
 import gi
@@ -18,19 +25,14 @@ import signal
 from socket import gethostname
 import select
 import argparse
-import os
-import os.path
 import requests
 import glob
 import traceback
 import codecs
 import mimetypes
 import ujson as json
-
-os.environ["PYRO_LOGFILE"] = "pyro.log"
-os.environ["PYRO_LOGLEVEL"] = "WARNING"
-
 import Pyro4
+
 from beets.plugins import BeetsPlugin
 from beets.ui import Subcommand
 from beets import ui
