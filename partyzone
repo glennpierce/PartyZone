@@ -3,6 +3,7 @@
 from __future__ import print_function
 
 import sys
+import logging
 import gi
 gi.require_version('Gst', '1.0')
 gi.require_version('GstNet', '1.0')
@@ -13,7 +14,14 @@ import argparse
 import os
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
-os.environ["PYRO_LOGLEVEL"] = "DEBUG"
+os.environ["PYRO_LOGLEVEL"] = "WARNING"
+
+logging.basicConfig(
+    format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno)s %(funcName)s %(message)s",
+    level = logging.INFO
+)
+
+logging.getLogger("Pyro4").setLevel(logging.WARNING)
 
 import os.path
 import socket
