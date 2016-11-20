@@ -41,7 +41,7 @@ if not os.path.exists(playlist_dir):
     os.makedirs(playlist_dir)
 
 logging.basicConfig(
-    format = '[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s','%m-%d %H:%M:%S',
+    format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno)s %(funcName)s %(message)s",
     level = logging.DEBUG
 )
 
