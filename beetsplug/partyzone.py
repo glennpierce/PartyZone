@@ -4,6 +4,13 @@ from __future__ import (division, absolute_import, print_function,
                         unicode_literals)
 
 import sys
+import logging
+
+logging.basicConfig(
+    format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno)s %(funcName)s %(message)s",
+    level = logging.DEBUG
+)
+
 import socket
 import gi
 import time
@@ -18,7 +25,6 @@ import glob
 import traceback
 import codecs
 import mimetypes
-import logging
 import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
@@ -40,10 +46,6 @@ playlist_dir = os.path.join(home, '.config', 'partyzone', 'playlists')
 if not os.path.exists(playlist_dir):
     os.makedirs(playlist_dir)
 
-logging.basicConfig(
-    format = "%(levelname) -10s %(asctime)s %(module)s:%(lineno)s %(funcName)s %(message)s",
-    level = logging.DEBUG
-)
 
 class BaseHandler(tornado.web.RequestHandler):
 
