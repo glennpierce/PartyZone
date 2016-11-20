@@ -456,7 +456,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                             other_device = playing_devices[0].proxy
                             print("other device playing " + other_device.name)
                             device.proxy.stop() 
-		 	    print("setting track playing to other playing track %s" % (other_device.track,))
+                            print("setting track playing to other playing track %s" % (other_device.track,))
                             device.proxy.track = other_device.track 
                             basetime = other_device.get_basetime()
                             print("got basetime %s from other playing player" % (basetime,))
@@ -493,7 +493,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             return self.base_url + '/trackfile/' + unicode(track_id)
 
         def play(self, uri):
-            p = self.active_devices[0]
+            p = self.active_devices()[0]
             p.proxy.track = uri
             print("setting basetime for %s to None" % (p.proxy.name,))
             basetime = p.proxy.play(None)
