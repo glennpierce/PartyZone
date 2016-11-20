@@ -80,6 +80,7 @@ class BaseHandler(tornado.web.RequestHandler):
             try:
                 self.json_args = json.loads(self.request.body)
             except Exception as ex:
+                print("prepare")
                 print(str(ex))
 
 
@@ -187,6 +188,7 @@ class StopPlayHandler(BaseHandler):
             print("finish stop")
             self.finish()
         except Exception as ex:
+            print("post")
             print(str(ex))
 
 class VolumeHandler(BaseHandler):
@@ -491,7 +493,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             return self.base_url + '/trackfile/' + unicode(track_id)
 
         def play(self, uri):
-            p = self.players[0]
+            p = self.active_devices[0]
             p.proxy.track = uri
             print("setting basetime for %s to None" % (p.proxy.name,))
             basetime = p.proxy.play(None)
@@ -509,7 +511,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             pass
 
         def stop(self):
-            for p in self.players:
+            for p in self.active_devices():
                 p.proxy.stop()
 
         def add_to_queue(self, url):
@@ -557,6 +559,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
                 default_host = s.getsockname()[0]
                 return default_host
             except Exception as ex:
+                print("get_host")
                 print(str(ex))
                 time.sleep(5)
 
