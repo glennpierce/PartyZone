@@ -21,7 +21,7 @@ import mimetypes
 import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
-os.environ["PYRO_LOGLEVEL"] = "INFO"
+os.environ["PYRO_LOGLEVEL"] = "Warning"
 
 import Pyro4
 from beets.plugins import BeetsPlugin
@@ -69,8 +69,6 @@ class BaseHandler(tornado.web.RequestHandler):
         pass
 
     def options(self, *args, **kwargs):
-    #def options(self):
-        # no body
         self.set_status(204)
         self.finish()
 
@@ -78,19 +76,12 @@ class BaseHandler(tornado.web.RequestHandler):
         self.json_args = None
         if self.request.headers.get("Content-Type", "").startswith("application/json"):
             try:
-                self.json_args = json.loads(self.request.body)
+                if self.request.body:
+                    self.json_args = json.loads(self.request.body)
             except Exception as ex:
                 print("prepare")
                 print(self.request)
                 print(str(ex))
-
-
-# class MainHandler(BaseHandler):
-#     def get(self):
-#         print(self.application)
-#         #self.application.controller.play()
-#         self.write("Hello, world")
-        
 
 class TrackFileHandler(BaseHandler):
     "Returns an audio file as a stream for gstreamer"
@@ -147,7 +138,6 @@ class AddToQueueHandler(BaseHandler):
 
 class SetPlayersActiveHandler(BaseHandler):
     def post(self):
-        print("SetPlayersActiveHandler")
         data = self.json_args
         #print(data)
         #print(data)
@@ -155,7 +145,7 @@ class SetPlayersActiveHandler(BaseHandler):
         #              {u'selected': True, u'id': u'PYRO:obj_524ad7477ca74bd8a5bdeac0c3f6e989@192.168.1.128:36172'}]}
         #{u'devices': [{u'selected': True, u'id': u'PYRO:obj_e650cbd7dfd34570ad2c12134c5b2d2f@192.168.1.6:50994'}]}
         for device in data['devices']:
-            print("set_device_active %s to %s" % (device['id'], device['selected']))
+            #print("set_device_active %s to %s" % (device['id'], device['selected']))
             self.application.controller.set_device_active(device['id'], device['selected'])
 
         self.write({'return': 'ok'})
@@ -166,7 +156,6 @@ class PlayFileHandler(BaseHandler):
         data = self.json_args
         track_id = data['track_id']
         uri = self.application.controller.track_id_to_uri(track_id)
-        print(uri)
         self.application.controller.play(uri)
         self.write({'return': 'ok'})
         self.finish()
@@ -280,10 +269,9 @@ class GetAlbumArtworkHandler(BaseHandler):
 
 class GetPlaylistsHandler(BaseHandler):
     def get(self):
-        #self.content_type = 'application/json'
+        self.content_type = 'application/json'
         playlist_names = glob.glob(playlist_dir + '/*')
         playlist_names = [{'value' : p, 'name' : os.path.split(p)[1]} for p in playlist_names]
-        #print(playlist_names)
         self.write({'items': playlist_names})
         self.finish()
 
@@ -474,7 +462,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             return self.players
 
         def active_devices(self):
-            print("players: %s" % (self.players,))
+            print("finding active players from players: %s" % (self.players,))
             return [p for p in self.players if p.active]
 
         def playing_devices(self):
