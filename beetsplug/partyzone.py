@@ -174,7 +174,7 @@ class PlayFileHandler(BaseHandler):
 class PlayQueueFileHandler(BaseHandler):
     def post(self):
         next_track = self.application.controller.next_track()
-        print("next track " + next_track)
+        print("next track " + str(next_track))
         if next_track:
             uri = self.application.controller.track_id_to_uri(next_track)
             self.application.controller.play(uri)
