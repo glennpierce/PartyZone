@@ -21,7 +21,7 @@ import mimetypes
 import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
-os.environ["PYRO_LOGLEVEL"] = "Warning"
+os.environ["PYRO_LOGLEVEL"] = "WARNING"
 
 import Pyro4
 from beets.plugins import BeetsPlugin
