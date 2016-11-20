@@ -18,6 +18,7 @@ import glob
 import traceback
 import codecs
 import mimetypes
+import logging
 import ujson as json
 
 os.environ["PYRO_LOGFILE"] = "pyro.log"
@@ -38,6 +39,11 @@ playlist_dir = os.path.join(home, '.config', 'partyzone', 'playlists')
 
 if not os.path.exists(playlist_dir):
     os.makedirs(playlist_dir)
+
+logging.basicConfig(
+    format = '[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s','%m-%d %H:%M:%S',
+    level = logging.DEBUG
+)
 
 class BaseHandler(tornado.web.RequestHandler):
 
@@ -349,7 +355,7 @@ class PlayerCallback(object):
 
         active_devices = self.application.controller.active_devices()
 
-        print("play_done: name : %s active_devices: %s" % (name, str(active_devices)))
+        #print("play_done: name : %s active_devices: %s" % (name, str(active_devices)))
 
         if not active_devices:
             return
@@ -482,13 +488,14 @@ class PartyZoneWebPlugin(BeetsPlugin):
             return self.base_url + '/trackfile/' + unicode(track_id)
 
         def play(self, uri):
-            print("active devices %s" % (str(self.active_devices())))
-            p = self.active_devices()[0]
+            active_devices = self.active_devices()
+            print("active devices %s" % (str(active_devices)))
+            p = active_devices[0]
             p.proxy.track = uri
             print("setting basetime for %s to None" % (p.proxy.name,))
             basetime = p.proxy.play(None)
 
-            for p in self.players[1:]:
+            for p in active_devices[1:]:
                 if not p.active:
                     continue
                 p.proxy.track = uri
