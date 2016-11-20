@@ -20,8 +20,8 @@ import codecs
 import mimetypes
 import ujson as json
 
-#os.environ["PYRO_LOGFILE"] = "pyro.log"
-#os.environ["PYRO_LOGLEVEL"] = "DEBUG"
+os.environ["PYRO_LOGFILE"] = "pyro.log"
+os.environ["PYRO_LOGLEVEL"] = "INFO"
 
 import Pyro4
 from beets.plugins import BeetsPlugin
@@ -81,6 +81,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.json_args = json.loads(self.request.body)
             except Exception as ex:
                 print("prepare")
+                print(self.request)
                 print(str(ex))
 
 
@@ -173,7 +174,7 @@ class PlayFileHandler(BaseHandler):
 class PlayQueueFileHandler(BaseHandler):
     def post(self):
         next_track = self.application.controller.next_track()
-        print(next_track)
+        print("next track " + next_track)
         if next_track:
             uri = self.application.controller.track_id_to_uri(next_track)
             self.application.controller.play(uri)
@@ -261,7 +262,7 @@ class GetAlbumArtworkHandler(BaseHandler):
     def get(self, param1):
         album_id = param1
         album = self.application.lib.get_album(int(album_id))
-        print(vars(album))
+        #print(vars(album))
         uri = album['artpath']
 
         if not uri:
@@ -280,9 +281,9 @@ class GetAlbumArtworkHandler(BaseHandler):
 class GetPlaylistsHandler(BaseHandler):
     def get(self):
         #self.content_type = 'application/json'
-	playlist_names = glob.glob(playlist_dir + '/*')
+        playlist_names = glob.glob(playlist_dir + '/*')
         playlist_names = [{'value' : p, 'name' : os.path.split(p)[1]} for p in playlist_names]
-        print(playlist_names)
+        #print(playlist_names)
         self.write({'items': playlist_names})
         self.finish()
 
@@ -493,6 +494,7 @@ class PartyZoneWebPlugin(BeetsPlugin):
             return self.base_url + '/trackfile/' + unicode(track_id)
 
         def play(self, uri):
+            print("active devices %s" % (str(self.active_devices())))
             p = self.active_devices()[0]
             p.proxy.track = uri
             print("setting basetime for %s to None" % (p.proxy.name,))
