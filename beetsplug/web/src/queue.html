@@ -4,6 +4,7 @@
     <div class="container">
         <div class="section">
 
+          <!--
           <md-sidenav view-model.ref="sideNav" md-edge="right">
             <div class="center-btn">
               <div class="button-row center-btn">
@@ -31,26 +32,50 @@
               </div>
             </div>
           </md-sidenav>
+          -->
 
           <div class="col s12 m4">
    
-            <a md-sidenav-collapse="ref.bind: sideNav;" md-width="10" class="left hide-on-large-only" style="cursor: pointer; padding: 0 10px;">
+            <!--
+            <a md-sidenav-collapse="ref.bind: sideNav;" md-width="10" class="left hide-on-med-and-up" style="cursor: pointer; padding: 0 10px;">
               <i class="material-icons">menu</i>
             </a>
+            -->
 
             <div class="left hide-on-small-only">
               <div class="button-row" class="left">
-                <button md-waves class="primary" md-button="large: true;" click.delegate="play($event)"><i class="material-icons">play_arrow</i></button>
+                <button md-waves class="primary" md-button="large: true;" click.delegate="play($event)"><i class="material-icons controller-button">play_arrow</i></button>
                 <button md-waves class="primary" md-button="large: true;" click.delegate="pause($event)"><i class="material-icons">pause</i></button>
                 <button md-waves class="primary" md-button="large: true;" click.delegate="stop($event)"><i class="material-icons">stop</i></button>
                 <button md-waves class="primary" md-button="large: true;" click.delegate="reset($event)"><i class="material-icons">clear_all</i></button>
-                <button md-waves class="primary" md-button="large: true;" click.delegate="loadPlaylist($event)">Load Playlist</button>
-                <button md-waves class="primary" md-button="large: true;" click.delegate="savePlaylist($event)">Save Playlist</button>
+                <button md-waves class="primary" md-button="large: true;" click.delegate="loadPlaylist($event)"><i class="fa fa-upload" aria-hidden="true"></i></button>
+                <button md-waves class="primary" md-button="large: true;" click.delegate="savePlaylist($event)"><i class="fa fa-floppy-o" aria-hidden="true"></i></button>
               </div>
+            </div>
+
+            <div class="left hide-on-med-and-up">
+
+              <a md-dropdown="activates: dropdown1; below-origin: false; constrain-width: false; alignment: right;"><i class="material-icons">list</i></a>
+
+              <!-- Dropdown Structure -->
+              <ul id='dropdown1' class='dropdown-content'>
+         
+                <div class="button-row center-btn">
+                  <button md-waves class="primary" md-button="large: true;" click.delegate="play($event)"><i class="material-icons controller-button">play_arrow</i></button>
+                  <button md-waves class="primary" md-button="large: true;" click.delegate="pause($event)"><i class="material-icons controller-button">pause</i></button>
+                  <button md-waves class="primary" md-button="large: true;" click.delegate="stop($event)"><i class="material-icons controller-button">stop</i></button>
+                  <button md-waves class="primary" md-button="large: true;" click.delegate="reset($event)"><i class="material-icons controller-button">clear_all</i></button>
+                  <button md-waves class="primary" md-button="large: true;" click.delegate="loadPlaylist($event)"><i class="fa fa-upload controller-button" aria-hidden="true"></i></button>
+                  <button md-waves class="primary" md-button="large: true;" click.delegate="savePlaylist($event)"><i class="fa fa-floppy-o controller-button" aria-hidden="true"></i></button>
+                </div>
+              </div>
+
+              </ul>
             </div>
 
             <br><br><br>
 
+<!--
             <md-collection view-model.ref="list">
               <md-collection-item repeat.for="track of queuedTracks" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">           
                 <div class="row">
@@ -66,6 +91,19 @@
                 </div>
               </md-collection-item>
             </md-collection>
+-->
+
+            <md-collection view-model.ref="list">
+                <md-collection-item repeat.for="track of queuedTracks" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">      
+                  
+                  <img width="72" height="72"  src="http://192.168.1.6:5000/album_artwork/${track.album_id}" alt="" class="square">
+                  <span class="title">${track.title}</span>
+                  <p class="description">Album: ${track.album}<br>Artist ${track.artist}</p>
+                 
+                </md-collection-item>
+            </md-collection>
+
+
              
           </div>
         </div>

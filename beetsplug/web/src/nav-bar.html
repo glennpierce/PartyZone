@@ -10,7 +10,7 @@
         </ul>
         <md-sidenav view-model.ref="sideNav" md-close-on-click="true">
           <ul>
-            <li md-waves repeat.for="row of router.navigation" class="${row.isActive ? 'active' : ''}">
+            <li md-waves repeat.for="row of router.navigation">
                 <a href.bind="row.href">${row.title}</a>
             </li>
           </ul>

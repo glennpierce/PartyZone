@@ -11,6 +11,7 @@
               <md-input md-label="search albums" md-value.bind="searchText" change.delegate="onSearchText($event)"></md-input>
               <br><br>
 
+<!--
               <md-collection view-model.ref="list">
                 <md-collection-item repeat.for="album of pageAlbums" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">
                   
@@ -30,22 +31,40 @@
                   </div>
                 </md-collection-item>
               </md-collection>
+-->
 
+              <md-collection view-model.ref="list">
+                <md-collection-item repeat.for="album of pageAlbums" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">
+                  
+                  <img width="72" height="72"  src="http://192.168.1.6:5000/album_artwork/${album.id}" alt="" class="square">
+                  <span class="title">${album.album}</span>
+                  <p class="description">Artist: ${album.albumartist}</p>
+                  <div class="secondary-content">
+                    <a href click.delegate="addToQueue($event, album.id)"><i class="material-icons small">playlist_add</i></a>
+                  </div>
+                
+                </md-collection-item>
+              </md-collection>
 
-           <!--
-                      <a href click.delegate="gotoTrackEdit($event, track)">Edit Metadata</a>
-                      <br>
-                      <a href click.delegate="addToQueue($event, track)">Add to queue</a>
-                      <br>
-                      <a href click.delegate="playTrack($event, track)">Play</a>
-                   -->
+              <div class="center-align hide-on-large-only">
+                  <md-pagination md-show-first-last.two-way="false"
+                                md-on-page-changed.delegate="onPageChanged($event)"
+                                md-pages.bind="numberOfPages"
+                                md-visible-page-links="0"
+                                md-active-page.bind="activePage"></md-pagination>
 
-              <md-pagination md-show-first-last.two-way="showFirstLastPages"
-                             md-visible-page-links.two-way="visiblePageLinks"
-                             md-on-page-changed.delegate="onPageChanged($event)"
-                             md-pages.bind="numberOfPages"
-                             md-active-page.bind="activePage"
-                             md-visible-page-links="20"></md-pagination>
+              </div>
+
+              <div class="center-align hide-on-med-and-down">
+
+                <md-pagination md-show-first-last.two-way="showFirstLastPages"
+                              md-visible-page-links.two-way="visiblePageLinks"
+                              md-on-page-changed.delegate="onPageChanged($event)"
+                              md-pages.bind="numberOfPages"
+                              md-active-page.bind="activePage"
+                              md-visible-page-links="10"></md-pagination>
+
+              </div>
 
         </div>
       </div>
