@@ -261,6 +261,11 @@ class GetAlbumArtworkHandler(BaseHandler):
     def get(self, param1):
         album_id = param1
         album = self.application.lib.get_album(int(album_id))
+
+        if not album:
+            self.finish({'return':'fail'})
+            return
+
         #print(vars(album))
         uri = album['artpath']
 
