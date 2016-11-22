@@ -2,6 +2,10 @@ body {
   margin: 0;
 }
 
+#sidenav-overlay {
+  z-index: 998;
+}
+
 .controller-button {
   width: 35px;
 }
