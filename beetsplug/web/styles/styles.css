@@ -24,11 +24,9 @@ body {
     margin-right:100px;
 }
 
-/*#dropdown1 
-{
-    border:0px;
-    outline:0px;
-}*/
+.partyzone-collection-item {
+  z-index: -10;
+}
 
 .splash {
   text-align: center;
