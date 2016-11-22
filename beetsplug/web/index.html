@@ -5,7 +5,6 @@
     <title><%- webpackConfig.metadata.title %></title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
     <base href="<%- webpackConfig.metadata.baseUrl %>">
     <!-- imported CSS are concatenated and added automatically -->
   </head>
@@ -14,10 +13,61 @@
 
   <body>
     <div aurelia-app="main">
+
       <div class="splash">
-        <!-- <div class="message"><%- webpackConfig.metadata.title %></div> -->
-        <i class="fa fa-spinner fa-spin"></i>
+        <div class="message"><%- webpackConfig.metadata.title %></div>
+
+        <div class="preloader-wrapper big active">
+          <div class="spinner-layer spinner-blue">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+              <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
+          </div>
+
+          <div class="spinner-layer spinner-red">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+              <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
+          </div>
+
+          <div class="spinner-layer spinner-yellow">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+              <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
+          </div>
+
+          <div class="spinner-layer spinner-green">
+            <div class="circle-clipper left">
+              <div class="circle"></div>
+            </div>
+            <div class="gap-patch">
+              <div class="circle"></div>
+            </div>
+            <div class="circle-clipper right">
+              <div class="circle"></div>
+            </div>
+          </div>
+        </div>
       </div>
+
       <% if (webpackConfig.metadata.ENV === 'development') { %>
       <!-- Webpack Dev Server reload -->
       <script src="/webpack-dev-server.js"></script>
