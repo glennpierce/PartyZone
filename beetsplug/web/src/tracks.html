@@ -19,10 +19,40 @@
                   <p class="description">Album: ${track.album} <br>
                      Artist: ${track.artist}
                   </p>
+
+
+
+
+<div class="fixed-action-btn horizontal" style="position: absolute; display: inline-block; right: 24px; top: 10px;">
+        <a md-button="floating: true; large: true;" md-tooltip="position: bottom; text: edit;" md-waves="color: light; circle: true;">
+          <i class="large material-icons">mode_edit</i>
+        </a>
+        <ul>
+          <li><a click.delegate="gotoTrackEdit($event, track)" md-button="floating: true;" md-tooltip="position: bottom; text: charts;" md-waves="color: light; circle: true;" class="red"><i class="material-icons small">mode_edit</i></a></li>
+          <li><a click.delegate="addToQueue($event, track)" md-button="floating: true;" md-tooltip="position: bottom; text: quote;" md-waves="color: light; circle: true;" class="yellow darken-1"><i class="material-icons small">playlist_add</i></a></li>
+          <li><a click.delegate="playTrack($event, track)" md-button="floating: true;" md-tooltip="position: bottom; text: publish;" md-waves="color: light; circle: true;" class="green"><i class="material-icons small">play_arrow</i></a></li>
+        </ul>
+      </div>
+
+
+
+
+
                   <div class="secondary-content">
+
+
+
+
+      <!--
+
+
                     <a href click.delegate="gotoTrackEdit($event, track)"><i class="material-icons small">mode_edit</i></a>
                     <a href click.delegate="addToQueue($event, track)"><i class="material-icons small">playlist_add</i></a>
                     <a href click.delegate="playTrack($event, track)"><i class="material-icons small">play_arrow</i></a>
+
+-->
+
+
                   </div>
                 
                 </md-collection-item>
