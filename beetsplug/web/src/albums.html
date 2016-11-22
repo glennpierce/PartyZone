@@ -40,7 +40,15 @@
                   <span class="title">${album.album}</span>
                   <p class="description">Artist: ${album.albumartist}</p>
                   <div class="secondary-content">
+
+                    <a click.delegate="addToQueue($event, album.id)" md-button="floating: true; large: true;" md-waves="color: light; circle: true;">
+                      <i class="material-icons small">playlist_add</i>
+                    </a>
+
+<!--
                     <a href click.delegate="addToQueue($event, album.id)"><i class="material-icons small">playlist_add</i></a>
+                    -->
+
                   </div>
                 
                 </md-collection-item>

@@ -25,7 +25,7 @@ body {
 }
 
 .partyzone-collection-item {
-  z-index: -10;
+  z-index: 100;
 }
 
 .splash {
