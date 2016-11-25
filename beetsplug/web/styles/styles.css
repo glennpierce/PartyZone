@@ -6,8 +6,9 @@ body {
   z-index: 998;
 }
 
-.controller-button {
-  width: 35px;
+.partyzone-button
+{
+    width: 20px;
 }
 
 .collection .collection-item.avatar .square {
@@ -19,6 +20,17 @@ body {
     display: inline-block;
     vertical-align: middle;
 }
+
+.playlist-container {
+    height:200px;
+    overflow:scroll;
+}
+
+/*.card-panel {
+    border:1px solid blue;
+    height:200px;
+    overflow:scroll;
+}*/
 
 .collection .collection-item.avatar .description {
     margin-right:100px;

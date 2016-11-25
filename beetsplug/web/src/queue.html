@@ -1,55 +1,43 @@
 <template>
-  <require from="materialize-css/bin/materialize.css"></require>
+  <require from="materialize-css/css/materialize.css"></require>
+
   <section>
     <div class="container">
         <div class="section">
 
-          <!--
-          <md-sidenav view-model.ref="sideNav" md-edge="right">
-            <div class="center-btn">
-              <div class="button-row center-btn">
-              <button class="center-btn" md-waves class="primary" md-button="large: true;" click.delegate="play($event)"><i class="material-icons">play_arrow</i></button>
-              </div>
-
-              <div class="button-row">
-              <button md-waves class="primary" md-button="large: true;" click.delegate="pause($event)"><i class="material-icons">pause</i></button>
-              </div>
-
-              <div class="button-row">
-              <button md-waves class="primary" md-button="large: true;" click.delegate="stop($event)"><i class="material-icons">stop</i></button>
-              </div>
-
-              <div class="button-row">
-              <button md-waves class="primary" md-button="large: true;" click.delegate="reset($event)"><i class="material-icons">clear_all</i></button>
-              </div>
-
-              <div class="button-row">
-              <button md-waves class="primary" md-button="large: true;" click.delegate="loadPlaylist($event)"><i class="fa fa-upload" aria-hidden="true"></i></button>
-              </div>
-
-              <div class="button-row">
-              <button md-waves class="primary" md-button="large: true;" click.delegate="savePlaylist($event)"><i class="fa fa-floppy-o" aria-hidden="true"></i></button>
+          <div id="loadPlaylistModal"  md-modal="dismissible: true;" md-modal.ref="loadDialog">
+            <div class="modal-content">
+              <div class="playlist-container">
+                <div class="card-panel teal lighten-2" repeat.for="playlist of playlists" click.delegate="selectPlaylist($event, playlist)">${playlist.name}</div>
               </div>
             </div>
-          </md-sidenav>
-          -->
+            <div class="modal-footer">
+              <a click.delegate="cancelLoadPlaylist()" md-button="flat: false;" md-waves="color: accent;" class="modal-action modal-close">Cancel</a>
+            </div>
+          </div>
+
+          <div id="savePlaylistModal"  md-modal="dismissible: true;" md-modal.ref="saveDialog">
+            <div class="modal-content">
+              <input type="text" value.bind="playListName" attach-focus="true" />
+            </div>
+            <div class="modal-footer">
+              <a click.delegate="savePlaylist($event, playListName)" md-button="flat: false;" md-waves="color: accent;" class="modal-action modal-close">Save</a>
+              <a click.delegate="cancel()" md-button="flat: false;" md-waves="color: accent;" style="margin-right:5px;" class="modal-action modal-close">Cancel</a>
+            </div>
+          </div>
 
           <div class="col s12 m4">
-   
-            <!--
-            <a md-sidenav-collapse="ref.bind: sideNav;" md-width="10" class="left hide-on-med-and-up" style="cursor: pointer; padding: 0 10px;">
-              <i class="material-icons">menu</i>
-            </a>
-            -->
 
             <div class="left hide-on-small-only">
               <div class="button-row" class="left">
-                <button md-waves class="primary" md-button="large: true;" click.delegate="play($event)"><i class="material-icons controller-button">play_arrow</i></button>
-                <button md-waves class="primary" md-button="large: true;" click.delegate="pause($event)"><i class="material-icons">pause</i></button>
-                <button md-waves class="primary" md-button="large: true;" click.delegate="stop($event)"><i class="material-icons">stop</i></button>
-                <button md-waves class="primary" md-button="large: true;" click.delegate="reset($event)"><i class="material-icons">clear_all</i></button>
-                <button md-waves class="primary" md-button="large: true;" click.delegate="loadPlaylist($event)"><i class="fa fa-upload" aria-hidden="true"></i></button>
-                <button md-waves class="primary" md-button="large: true;" click.delegate="savePlaylist($event)"><i class="fa fa-floppy-o" aria-hidden="true"></i></button>
+
+                <a md-waves md-button class="primary" click.delegate="play($event)"><i class="center-align partyzone-button material-icons">play_arrow</i></a>
+                <a md-waves md-button class="primary" click.delegate="pause($event)"><i class="center-align partyzone-button material-icons">pause</i></a>
+                <a md-waves md-button class="primary" click.delegate="stop($event)"><i class="center-align partyzone-button material-icons">stop</i></a>
+                <a md-waves md-button class="primary" click.delegate="reset($event)"><i class="center-align partyzone-button material-icons">clear_all</i></a>
+                <a md-waves md-button href="#loadPlaylistModal"><i class="fa fa-upload center-align partyzone-button " aria-hidden="true"></i></a>
+                <a md-waves md-button href="#savePlaylistModal"><i class="fa fa-floppy-o center-align partyzone-button " aria-hidden="true"></i></a>
+
               </div>
             </div>
 

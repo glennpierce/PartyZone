@@ -1,15 +1,22 @@
 <template>
 
-  <require from='./nav-bar.html'></require>
+  <require from="materialize-css/css/materialize.css"></require>
 
+  <require from="./loading-indicator"></require>
+  <require from="./nav-bar.html"></require>
+  <require from="./app-colors.html"></require>
+
+  <md-colors md-primary-color.bind="primaryColor" md-accent-color.bind="accentColor"></md-colors>
+  <app-colors primary-color.bind="primaryColor" accent-color.bind="accentColor"></app-colors>
+  <loading-indicator></loading-indicator>
+
+  <header>
   <nav-bar router.bind="router"></nav-bar>
+  </header>
 
-  <div>
-    <router-view></router-view>
-  </div>
-
+  <main>
+    <div>
+      <router-view></router-view>
+    </div>
+  </man>
 </template>
-
-
-
-

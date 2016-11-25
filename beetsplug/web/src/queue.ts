@@ -1,5 +1,5 @@
 import {inject, Lazy, autoinject} from 'aurelia-framework';
-import {DialogService} from 'aurelia-dialog';
+//import {DialogService} from 'aurelia-dialog';
 import {HttpClient} from 'aurelia-fetch-client';
 import {Router} from 'aurelia-router';
 import {AllPlay, ITrack, QueueContainer} from './allplay';
@@ -10,36 +10,43 @@ import {Playlist} from './playlist';
 const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
 
 
-@inject(AllPlay, QueueContainer, DialogService, Router)
+@inject(AllPlay, QueueContainer, Router)
 export class Queue {
   heading: string = 'Queue';
+  private playlists : string[];
 
-  constructor(private allplay: AllPlay, private queueContainer : QueueContainer, private dialogService: DialogService, private router: Router) {
+  constructor(private allplay: AllPlay, private queueContainer : QueueContainer, private router: Router) {
+
+    
   }
 
-  async loadPlaylist(event: any) {
-
-    let state = {'queue' : this, 'choosePlaylist' : true};
-
-    this.dialogService.open({ viewModel: Playlist, model : state }).then(response => {
-
-        if (!response.wasCancelled) {
- 	  //console.log("here");
-        }
-      });
-
-    return true;
+  async activate(params, navigationInstruction): Promise<void> {
+    this.playlists = await this.allplay.getPlaylists();
   }
 
-  async savePlaylist(event: any) {
+  // async loadPlaylist(event: any) {
 
-    let state = {'queue' : this, 'choosePlaylist' : false};
+  //   let state = {'queue' : this, 'choosePlaylist' : true};
 
-    this.dialogService.open({ viewModel: Playlist, model : state }).then(response => {
-      });
+  //   // this.dialogService.open({ viewModel: Playlist, model : state }).then(response => {
 
-    return true;
-  }
+  //   //     if (!response.wasCancelled) {
+ 	//   // //console.log("here");
+  //   //     }
+  //   //   });
+
+  //   return true;
+  // }
+
+  // async savePlaylist(event: any) {
+
+  //   // let state = {'queue' : this, 'choosePlaylist' : false};
+
+  //   // this.dialogService.open({ viewModel: Playlist, model : state }).then(response => {
+  //   //   });
+
+  //   return true;
+  // }
 
   get queuedTracks() : Array<ITrack> {
       return this.queueContainer.queued_tracks;
@@ -88,4 +95,40 @@ export class Queue {
   //   this.tracks.gotoTrackEdit(event, track);
   // 	return true;
   // }
+
+  async selectPlaylist (event: any, selectedPlaylist) {
+
+    let self = this;
+
+    console.log(selectedPlaylist);
+
+    let tracks = await this.allplay.getPlaylist(selectedPlaylist.name);
+
+    this.resetQueue();
+
+    for (let track of tracks) {
+        console.log("in loop: " + track.path);
+        await this.addToQueue(track);
+    }
+
+    //self.controller.ok();
+    this.loadDialog.close();
+  }
+
+  // disagree(event: any) {
+  //   this.saveDialog.close();
+  // }
+
+  async savePlaylist (event: any, playListName : string) {
+
+    let self = this;
+
+    //this.dialogService.open({ viewModel: Playlist, model : state }).then(response => {
+    //   });
+
+    this.allplay.saveQueue(playListName, this.queuedTracks);
+
+    this.saveDialog.close();
+  }
+
 }

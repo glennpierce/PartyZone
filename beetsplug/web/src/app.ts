@@ -8,6 +8,8 @@ import {Speakers} from './speakers';
 @inject(AllPlay, QueueContainer, Speakers)
 export class App {
   router: Router;
+  //primaryColor = '#00bcd4';
+  //accentColor = '#2bbbad';
 
   constructor(private allplay: AllPlay, private queueContainer: QueueContainer, private speakers: Speakers) {
       //speakers.setup();
