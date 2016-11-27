@@ -51,11 +51,15 @@ export class Albums {
   }
 
   onSearchText(event : any) {
-      this.setPage(1);
+    this.setPage(1);
   }
   
   onPageChanged(e) {
     this.setPage(e.detail);
+  }
+
+  gotoTracks(event : any, album_id : number) {
+    this.router.navigate('/?album_id=' + album_id);
   }
 
   async addToQueue(event: any, album_id: number) {

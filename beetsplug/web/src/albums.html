@@ -11,32 +11,10 @@
               <md-input md-label="search albums" md-value.bind="searchText" change.delegate="onSearchText($event)"></md-input>
               <br><br>
 
-<!--
               <md-collection view-model.ref="list">
                 <md-collection-item repeat.for="album of pageAlbums" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">
                   
-                  <div class="row">
-                    <div class="col s1">
-                    <img width="72" height="72" src="http://192.168.1.6:5000/album_artwork/${album.id}" />
-                    </div>
-
-                    <div class="col s11">
-                      <div>${album.id}</div>
-                      <span class="accent-text title">${album.album}</span>
-                      <p>Artist ${album.albumartist}</p>
-                      <div class="secondary-content">
-                        <a href click.delegate="addToQueue($event, album.id)"><i class="material-icons small">playlist_add</i></a>
-                      </div>
-                    </div>
-                  </div>
-                </md-collection-item>
-              </md-collection>
--->
-
-              <md-collection view-model.ref="list">
-                <md-collection-item repeat.for="album of pageAlbums" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">
-                  
-                  <img width="72" height="72"  src="http://192.168.1.6:5000/album_artwork/${album.id}" alt="" class="square">
+                  <img click.delegate="gotoTracks($event, album.id)" width="72" height="72"  src="http://192.168.1.6:5000/album_artwork/${album.id}" alt="" class="square">
                   <span class="title">${album.album}</span>
                   <p class="description">Artist: ${album.albumartist}</p>
                   <div class="secondary-content">
@@ -44,10 +22,6 @@
                     <a click.delegate="addToQueue($event, album.id)" md-button="floating: true; large: true;" md-waves="color: light; circle: true;">
                       <i class="material-icons small">playlist_add</i>
                     </a>
-
-<!--
-                    <a href click.delegate="addToQueue($event, album.id)"><i class="material-icons small">playlist_add</i></a>
-                    -->
 
                   </div>
                 

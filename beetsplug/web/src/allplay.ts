@@ -129,6 +129,11 @@ export class AllPlay {
       return this.tracks.filter(track => track.id === +id)[0];
   }
 
+//   getTracksForAlbum(album_id: number) {
+//       this.getTracks();
+//       return this.tracks.filter(track => track.album_id === +album_id)[0];
+//   }
+
   async getAlbums(): Promise<Array<IAlbum>> {
 
     // ensure fetch is polyfilled before we create the http client

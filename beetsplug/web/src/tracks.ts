@@ -22,7 +22,13 @@ export class Tracks {
   }
 
   async activate(params, navigationInstruction): Promise<void> {
-    this.tracks = await this.allplay.getTracks();
+    if(params.album_id != undefined) {
+      this.tracks = await this.allplay.getTracksForAlbum(+params.album_id);
+    }
+    else {
+      this.tracks = await this.allplay.getTracks();
+    }
+
     this.numberOfPages = Math.ceil(this.tracks.length / this.tracksPerPage);
     this.setPage(1);
   }
