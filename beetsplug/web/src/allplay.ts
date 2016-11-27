@@ -2,7 +2,7 @@ import {inject, Lazy, autoinject, singleton} from 'aurelia-framework';
 import {HttpClient} from 'aurelia-fetch-client';
 
 // polyfill fetch client conditionally
-const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
+//const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
 
 
 export interface ITrack {
@@ -19,12 +19,13 @@ export class Speaker {
   id: string;
   name: string;
   selected: boolean;
+  volume : number;
 
   constructor(id: string, name: string, selected: boolean) {
      this.id = id;
      this.name = name;
      this.selected = selected;
-  };
+  }
 }
 
 export interface IAlbum {

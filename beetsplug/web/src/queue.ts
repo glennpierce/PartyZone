@@ -4,16 +4,17 @@ import {HttpClient} from 'aurelia-fetch-client';
 import {Router} from 'aurelia-router';
 import {AllPlay, ITrack, QueueContainer} from './allplay';
 import {Tracks} from './tracks';
-import {Playlist} from './playlist';
 
 // polyfill fetch client conditionally
-const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
+//const fetch = !self.fetch ? System.import('isomorphic-fetch') : Promise.resolve(self.fetch);
 
 
 @inject(AllPlay, QueueContainer, Router)
 export class Queue {
   heading: string = 'Queue';
   private playlists : string[];
+  loadDialog : any;
+  saveDialog : any;
 
   constructor(private allplay: AllPlay, private queueContainer : QueueContainer, private router: Router) {
 
@@ -111,20 +112,12 @@ export class Queue {
         await this.addToQueue(track);
     }
 
-    //self.controller.ok();
     this.loadDialog.close();
   }
-
-  // disagree(event: any) {
-  //   this.saveDialog.close();
-  // }
 
   async savePlaylist (event: any, playListName : string) {
 
     let self = this;
-
-    //this.dialogService.open({ viewModel: Playlist, model : state }).then(response => {
-    //   });
 
     this.allplay.saveQueue(playListName, this.queuedTracks);
 
