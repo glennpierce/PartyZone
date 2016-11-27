@@ -13,7 +13,7 @@
     "aurelia-configuration": "^1.0.14",
     "aurelia-dialog": "^1.0.0-beta.3.0.1",
     "aurelia-fetch-client": "^1.0.1",
-    "aurelia-materialize-bridge": "^0.20.0",
+    "aurelia-materialize-bridge": "^0.20.2",
     "aurelia-validation": "^0.14.0",
     "bluebird": "^3.4.1",
     "materialize-css": "^0.97.8",
