@@ -29,6 +29,7 @@
           <div class="col s12 m4">
 
             <div class="left hide-on-small-only">
+
               <div class="button-row" class="left">
 
                 <a md-waves md-button class="primary" click.delegate="play($event)"><i class="center-align partyzone-button material-icons">play_arrow</i></a>
@@ -43,43 +44,23 @@
 
             <div class="left hide-on-med-and-up">
 
-              <a md-dropdown="activates: dropdown1; below-origin: false; constrain-width: false; alignment: right;"><i class="material-icons">list</i></a>
+              <div class="fixed-action-btn horizontal" style="display: inline-block; right: 24px; top: 65px;">
+                    <a md-button="floating: true; large: true;" md-tooltip="position: bottom; text: edit;" md-waves="color: light; circle: true;">
+                      <i class="large material-icons">mode_edit</i>
+                    </a>
+                    <ul>
+                      <li><a click.delegate="play($event)" md-button="floating: true;" md-tooltip="position: bottom; text: play;" md-waves="color: light; circle: true;" class="red"><i class="material-icons controller-button">play_arrow</i></a></li>
+                      <li><a click.delegate="pause($event)" md-button="floating: true;" md-tooltip="position: bottom; text: pause;" md-waves="color: light; circle: true;" class="yellow darken-1"><i class="material-icons controller-button">pause</i></a></li>
+                      <li><a click.delegate="stop($event)" md-button="floating: true;" md-tooltip="position: bottom; text: stop;" md-waves="color: light; circle: true;" class="green"><i class="material-icons controller-button">stop</i></a></li>
+                      <li><a click.delegate="reset($event)" md-button="floating: true;" md-tooltip="position: bottom; text: empty que;" md-waves="color: light; circle: true;" class="green"><i class="material-icons controller-button">clear_all</i></a></li>
+                      <li><a click.delegate="loadPlaylist($event)" md-button="floating: true;" md-tooltip="position: bottom; text: load playlist;" md-waves="color: light; circle: true;" class="green"><i class="fa fa-download controller-button" aria-hidden="true"></i></a></li>
+                      <li><a click.delegate="savePlaylist($event)" md-button="floating: true;" md-tooltip="position: bottom; text: save playlist;" md-waves="color: light; circle: true;" class="green"><i class="fa fa-floppy-o controller-button" aria-hidden="true"></i></a></li>
+                    </ul>
+                  </div>
 
-              <!-- Dropdown Structure -->
-              <ul id='dropdown1' class='dropdown-content'>
-         
-                <div class="button-row center-btn">
-                  <button md-waves class="primary" md-button="large: true;" click.delegate="play($event)"><i class="material-icons controller-button">play_arrow</i></button>
-                  <button md-waves class="primary" md-button="large: true;" click.delegate="pause($event)"><i class="material-icons controller-button">pause</i></button>
-                  <button md-waves class="primary" md-button="large: true;" click.delegate="stop($event)"><i class="material-icons controller-button">stop</i></button>
-                  <button md-waves class="primary" md-button="large: true;" click.delegate="reset($event)"><i class="material-icons controller-button">clear_all</i></button>
-                  <button md-waves class="primary" md-button="large: true;" click.delegate="loadPlaylist($event)"><i class="fa fa-download controller-button" aria-hidden="true"></i></button>
-                  <button md-waves class="primary" md-button="large: true;" click.delegate="savePlaylist($event)"><i class="fa fa-floppy-o controller-button" aria-hidden="true"></i></button>
-                </div>
-              </div>
-
-              </ul>
             </div>
 
             <br><br><br>
-
-<!--
-            <md-collection view-model.ref="list">
-              <md-collection-item repeat.for="track of queuedTracks" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">           
-                <div class="row">
-                  <div class="col s1">
-                    <img width="72" height="72" src="http://192.168.1.6:5000/album_artwork/${track.album_id}" />
-                  </div>
-
-                  <div class="col s11">
-                    <span class="accent-text title">${track.title}</span>
-                    <p>Album ${track.album}</p>
-                    <p>Artist ${track.artist}</p>
-                  </div>
-                </div>
-              </md-collection-item>
-            </md-collection>
--->
 
             <md-collection view-model.ref="list">
                 <md-collection-item repeat.for="track of queuedTracks" class="avatar ${ selector.isSelected ? 'selected' : '' } ${ selector.mdDisabled ? 'disabled' : '' }">      
@@ -91,8 +72,6 @@
                 </md-collection-item>
             </md-collection>
 
-
-             
           </div>
         </div>
       </div>
