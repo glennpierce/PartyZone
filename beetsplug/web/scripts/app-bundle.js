@@ -23,7 +23,6 @@ define('allplay',["require", "exports", 'aurelia-framework', 'aurelia-fetch-clie
             this.name = name;
             this.selected = selected;
         }
-        ;
     }
     exports.Speaker = Speaker;
     class QueueContainer {
