@@ -33,6 +33,9 @@ import mimetypes
 import ujson as json
 import Pyro4
 
+Pyro4.config.MAX_RETRIES = 1
+Pyro4.config.COMMTIMEOUT = 1.5      # 1.5 seconds
+
 from beets.plugins import BeetsPlugin
 from beets.ui import Subcommand
 from beets import ui
@@ -319,7 +322,17 @@ class GetDevicesHandler(BaseHandler):
         print("GetDevicesHandler")
         self.application.controller.rediscover()
         self.content_type = 'application/json'
-        devices = [{'id': i.uri, 'name': i.proxy.name, 'selected': i.active} for i in self.application.controller.get_devices()]
+        devices = []
+
+        for i in self.application.controller.get_devices():
+            try:
+                logging.warning("here")
+                i.proxy._pyroTimeout = 1.0    # 1.0 seconds
+                i.proxy._pyroMaxRetries = 1
+                devices.append({'id': i.uri, 'name': i.proxy.name, 'selected': i.active})
+            except Exception as ex:
+                pass
+
         print(str(devices))
         self.write({'devices': devices})
         self.finish()

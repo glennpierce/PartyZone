@@ -306,6 +306,9 @@ if __name__ == '__main__':
             player.install_pyro_event_callback(daemon)
             GObject.MainLoop().run()
 
+            ns.remove(name=register_name)
+
+
         elif args.testsync:
 
             # Example controller
