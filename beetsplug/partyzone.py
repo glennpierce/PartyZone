@@ -408,10 +408,10 @@ class PartyZoneWebPlugin(BeetsPlugin):
             self.directory = directory
             self.callback_uri = callback_uri
             
-            self.stop()
+            #self.stop()
 
             tmp = self._players.copy()
-            self._players = {}
+            tmp_players = {}
 
             with Pyro4.locateNS() as ns:
                 players = ns.list(prefix="partyzone.players")
@@ -419,20 +419,20 @@ class PartyZoneWebPlugin(BeetsPlugin):
                     try:
                         # If we can't call name slave is not there
                         s = Pyro4.Proxy(uri)
-                        #s.set_callback_uri(uri)
                         if s.name is not None:
                             if uri in tmp: # Don't change if device already in players as it may be marked active
-                                self._players[uri] = tmp[uri]
+                                tmp_players[uri] = tmp[uri]
                             else:
-                                self._players[uri] = Device(uri, proxy=s)
+                                tmp_players[uri] = Device(uri, proxy=s)
                     except:
                         pass
 
-                print("players: " + str(self.players))
-             
-                for p in self.players:
+                for p in tmp_players.values():
                     p.proxy.test()
                     p.proxy.set_callback_uri(callback_uri)
+
+            self._players = tmp_players
+            print("players: " + str(self.players))
 
         def rediscover(self):
             return self.__discover(self.base_url, self.callback_uri, self.directory)
